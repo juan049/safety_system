@@ -1,0 +1,82 @@
+{% extends "./layouts/base.html" %} fii{% block content %}
+<!-- Título Fijo -->
+<div class="bg-white p-3 shadow-sm">
+  <h2 class="text-center mb-0">
+    Hallazgos de Seguridad en el Proyecto: {{project_name}}
+  </h2>
+</div>
+
+<!-- Botón para crear un nuevo post -->
+<div class="d-flex justify-content-end my-3">
+  <a href="{% url 'project_findings_report' %}"
+    ><button class="btn btn-primary">Ver reporte</button></a
+  >
+  <a href="{% url 'project_findings_register' project_id %}"
+    ><button class="btn btn-primary">Realizar auditoria de seguridad</button></a
+  >
+</div>
+
+<!-- Feed de Hallazgos -->
+<div class="feed">
+  <!-- Tarjetas con Hallazgos Actualizados -->
+  {% for finding in findings %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="card-title fs-3 fw-bold">{{finding.title}}</h5>
+        {%if finding.status%}
+        <span class="badge bg-success rounded-pill">Hallazgo Cerrado</span>
+        {%else%}
+        <span class="badge bg-danger rounded-pill">Hallazgo No Cerrado</span>
+        {%endif%}
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <img
+            src="https://picsum.photos/500/300"
+            class="img-fluid rounded"
+            alt="Foto de hallazgo"
+          />
+        </div>
+        <div class="col-md-6 mb-3">
+          <img
+            src="https://picsum.photos/500/300"
+            class="img-fluid rounded"
+            alt="Foto de corrección"
+          />
+        </div>
+      </div>
+      <p>
+        <strong>Clasificación del hallazgo: </strong
+        >{{finding.get_finding_classification.title}}
+      </p>
+      <p>
+        <strong>Compañía responsable: </strong>{{finding.get_contractor.name}}
+      </p>
+      <div class="description-section">
+        <h6><strong>Descripción del Hallazgo:</strong></h6>
+        <p>{{finding.description}}</p>
+      </div>
+      <div class="comments-section">
+        <h6 class="fs-5 fw-bold">Comentarios</h6>
+        <div class="comment mb-2">
+          <strong>Juan Pérez:</strong> Este equipo no cumple con las normativas.
+        </div>
+        <div class="input-group mt-3">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Añadir un comentario..."
+          />
+          <button class="btn btn-outline-secondary" type="button">
+            Comentar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+<!-- Continua con las demás tarjetas, siguiendo el mismo formato para la descripción y los comentarios -->
+
+{% endblock %}

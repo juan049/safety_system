@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi Sitio Web Responsivo</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --bs-primary: #d32f2f;
+        --bs-primary-rgb: 211, 47, 47;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        padding-top: 80px; /* Ajustado para el encabezado más alto en móviles */
+      }
+      .navbar-brand img {
+        height: 30px;
+      }
+      .website-name {
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+      @media (min-width: 768px) {
+        .navbar-brand img {
+          height: 40px;
+        }
+        body {
+          padding-top: 56px; /* Ajustado para el encabezado más corto en escritorio */
+        }
+        .website-name {
+          font-size: 1.8rem;
+        }
+      }
+      .user-icon {
+        width: 32px;
+        height: 32px;
+        background-color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+        color: var(--bs-primary);
+        font-weight: bold;
+      }
+      main {
+        flex: 1;
+      }
+      .footer {
+        background-color: #f8f9fa;
+        padding: 1rem 0;
+      }
+      .sticky-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+      }
+      @media (max-width: 767px) {
+        .navbar-brand {
+          font-size: 0.9rem;
+        }
+        .user-info {
+          font-size: 0.8rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Encabezado Fijo -->
+    <header>
+      <nav class="navbar navbar-expand navbar-dark bg-primary fixed-top">
+        <div class="container-fluid">
+          <a class="navbar-brand d-flex align-items-center" href="/">
+            <img
+              src="https://www.fujita.com/common/img/header_logo01.png"
+              alt="Logo"
+              class="me-2"
+            />
+          </a>
+          <span class="website-name text-white mx-auto d-none d-md-block"
+            >FUJITA CORPORATION DIGITAL</span
+          >
+          <div class="user-info d-flex align-items-center">
+            <span class="text-white me-2 d-none d-md-inline">Bienvenido</span>
+            <div class="user-icon">J</div>
+            <span class="text-white">Juan Pérez</span>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="py-4 py-md-5">
+      <div id="main-container" class="container">
+        {% block content%} {% endblock content%}
+      </div>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="footer mt-auto fixed-bottom">
+      <div class="container text-center">
+        <p class="mb-0">
+          Todos los Derechos Reservados &copy; 2024 Fujita Corporation digitlal
+        </p>
+      </div>
+    </footer>
+
+    <!-- Botón Fijo -->
+    <button
+      class="btn btn-primary sticky-button rounded-circle"
+      aria-label="Acción Fija"
+    >
+      <i class="bi bi-arrow-up"></i>
+    </button>
+
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
