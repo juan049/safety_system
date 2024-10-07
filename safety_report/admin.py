@@ -9,4 +9,3 @@ admin.site.register(ProjectContractor)
 
 #Estos son temporales y los borraré
 admin.site.register(Finding)
-admin.site.register(Image)

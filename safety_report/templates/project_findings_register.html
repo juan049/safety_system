@@ -5,72 +5,10 @@
 </div>
 
 <!-- Formulario de registro de hallazgo -->
-<form method="post">
-  {% csrf_token %}
-  <!-- Campo: Hallazgo -->
-  <div class="mb-3">
-    <label for="hallazgo" class="form-label">Hallazgo</label>
-    <input
-      type="text"
-      class="form-control"
-      id="hallazgo"
-      name="title"
-      placeholder="Describa el hallazgo"
-    />
-  </div>
-
-  <!-- Campo: Clasificación del Hallazgo -->
-  <div class="mb-3">
-    <label for="clasificacion" class="form-label"
-      >Clasificación del Hallazgo</label
-    >
-    <select
-      class="form-select"
-      id="clasificacion"
-      name="finding_classification"
-    >
-      <option selected>Seleccione la clasificación</option>
-      {% for finding_classification in finding_classifications%}
-      <option value="{{finding_classification.id}}">
-        {{finding_classification.title}}
-      </option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <!-- Campo: Compañía Responsable -->
-  <div class="mb-3">
-    <label for="compania" class="form-label">Compañía Responsable</label>
-    <select class="form-select" id="compania" name="contractor">
-      <option selected>Seleccione la compañía responsable</option>
-      {% for project_contractor in project_contractors%}
-      <option value="{{project_contractor.contractor.id}}">
-        {{project_contractor.contractor.name}}
-      </option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <!-- Campo: Descripción del Hallazgo -->
-  <div class="mb-3">
-    <label for="descripcion" class="form-label">Descripción del Hallazgo</label>
-    <textarea
-      class="form-control"
-      id="descripcion"
-      rows="3"
-      name="description"
-      placeholder="Proporcione más detalles sobre el hallazgo"
-    ></textarea>
-  </div>
-
-  <!-- Campo: Fotografía -->
-  <div class="mb-3">
-    <label for="foto" class="form-label">Fotografía</label>
-    <input type="file" class="form-control" id="foto" accept="image/*" />
-  </div>
-
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %} {{ finding_register_form}}
   <!-- Botón de guardar -->
-  <div class="text-center">
+  <div class="text-center mt-2">
     <button type="submit" class="btn btn-primary">Guardar Hallazgo</button>
   </div>
 </form>

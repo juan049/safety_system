@@ -1,5 +1,18 @@
 from django.db import models
 from django.contrib.auth.models import User
+import uuid
+
+from PIL import Image, ImageOps
+from django.core.files.base import ContentFile
+from io import BytesIO
+
+
+
+def get_image_path(instance, filename):
+    # Generar un UUID y concatenar con la extensión del archivo
+    ext = filename.split('.')[-1]  # Obtener la extensión del archivo
+    unique_filename = f"{uuid.uuid4()}.{ext}"  # Crear un nombre único
+    return f"findings/{unique_filename}"  #
 
 # Proyectos
 class Project(models.Model):
@@ -12,6 +25,7 @@ class Project(models.Model):
 class FindingClassification(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
+    weighting = models.IntegerField(default=0)
     
     def __str__(self) -> str:
         return self.title
@@ -22,15 +36,7 @@ class Contractor(models.Model):
     description = models.TextField()
     
     def __str__(self) -> str:
-        return self.name
-
-#Imagenes
-class Image(models.Model):
-    path = models.CharField(max_length=250)
-    image_name = models.CharField(max_length=200)
-    
-    def __str__(self) -> str:
-        return self.image_name        
+        return self.name      
     
 #Tabla con los usuarios registrados en cada proyecto
 class ProjectUser(models.Model):
@@ -50,19 +56,60 @@ class ProjectContractor(models.Model):
 
 
     
-#Hallazgos
 class Finding(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     project = models.ForeignKey(Project, default='', on_delete=models.CASCADE)
     contractor = models.ForeignKey(Contractor, on_delete=models.CASCADE)
-    finding_classification = models.ForeignKey(FindingClassification, on_delete=models.CASCADE, default=1)
-    before_image = models.ForeignKey(Image, on_delete=models.CASCADE, related_name='before_image', )
-    after_image = models.ForeignKey(Image, on_delete=models.CASCADE, related_name='after_image', default=None, blank=True, null=True)
-    status = models.BooleanField()
+    finding_classification = models.ForeignKey(FindingClassification, on_delete=models.CASCADE)
+    
+    # Usar la función get_image_path para el campo before_image
+    before_image = models.ImageField(upload_to=get_image_path, blank=False, null=False) 
+    
+    # La segunda imagen es opcional
+    after_image = models.ImageField(upload_to=get_image_path, blank=True, null=True)
+    
+    status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # Nuevo campo para el autor (quien creó el hallazgo)
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    
+    # Sobrescribir el método save para redimensionar y comprimir las imágenes
+    def save(self, *args, **kwargs):
+        # Redimensionar y comprimir la imagen antes (before_image)
+        if self.before_image:
+            self.before_image = self.optimize_image(self.before_image, (500, 300))
+
+        # Redimensionar y comprimir la imagen después (after_image) si existe
+        if self.after_image:
+            self.after_image = self.optimize_image(self.after_image, (500, 300))
+        
+        super().save(*args, **kwargs)
+
+    def optimize_image(self, image_field, size):
+        # Abrir la imagen utilizando Pillow
+        img = Image.open(image_field)
+        
+        # Convertir a formato RGB si es necesario (para JPEG)
+        if img.mode in ("RGBA", "P"):  # Convertir si la imagen tiene transparencia
+            img = img.convert("RGB")
+        
+        # Redimensionar la imagen
+        img = img.resize(size, Image.LANCZOS)
+
+        # Eliminar metadatos para reducir el tamaño
+        img = ImageOps.exif_transpose(img)  # Se asegura que las rotaciones se apliquen y los EXIF se descarten
+        
+        # Guardar la imagen en un objeto BytesIO con formato JPEG
+        img_io = BytesIO()
+        img.save(img_io, format='JPEG', quality=85, optimize=True)  # Optimiza y ajusta calidad
+
+        # Crear un nuevo ContentFile con la imagen optimizada
+        new_image = ContentFile(img_io.getvalue(), name=image_field.name)
+        return new_image
+
     def __str__(self) -> str:
         return self.title
     
@@ -71,7 +118,6 @@ class Finding(models.Model):
     
     def get_contractor(self):
         return self.contractor
-
 
     
 #Comentarios

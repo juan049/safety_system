@@ -26,72 +26,62 @@
     entre todos los miembros del equipo.
   </p>
 
+ 
+
   <!-- Carrusel de Imágenes de Seguridad en Construcción -->
-  <div
-    id="seguridadCarrusel"
-    class="carousel slide mt-4"
-    data-bs-ride="carousel"
-  >
+  <style>
+    .carousel-inner img {
+      max-height: 50vh; /* Reducir la altura máxima de las imágenes a la mitad */
+      object-fit: cover; /* Ajustar la imagen sin distorsionarla */
+    }
+  
+    .carousel-caption {
+      background-color: rgba(0, 0, 0, 0.5); /* Fondo negro semitransparente */
+      color: white; /* Texto blanco */
+      padding: 1rem; /* Espaciado alrededor del texto */
+    }
+  
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+      background-color: rgba(0, 0, 0, 0.5); /* Fondo negro para las flechas */
+      border-radius: 50%; /* Flechas redondeadas */
+    }
+  </style>
+  
+  <div id="seguridadCarrusel" class="carousel slide mt-4" data-bs-ride="carousel">
     <div class="carousel-inner">
       <div class="carousel-item active">
-        <img
-          src="https://via.placeholder.com/1200x400?text=Seguridad+en+Alturas"
-          class="d-block w-100"
-          alt="Seguridad en Alturas"
-        />
+        <img src="https://www.adbarbieri.com/hubfs/safety.jpg" class="d-block w-100" alt="Seguridad en Alturas" />
         <div class="carousel-caption d-none d-md-block">
           <h5>Seguridad en Alturas</h5>
           <p>Implementando medidas preventivas para trabajos en altura.</p>
         </div>
       </div>
       <div class="carousel-item">
-        <img
-          src="https://via.placeholder.com/1200x400?text=Equipos+de+Protección+Personal"
-          class="d-block w-100"
-          alt="Equipos de Protección Personal"
-        />
+        <img src="https://www.gob.mx/cms/uploads/article/main_image/82119/EPP_Enaproc.jpg" class="d-block w-100" alt="Equipos de Protección Personal" />
         <div class="carousel-caption d-none d-md-block">
           <h5>Equipos de Protección Personal</h5>
-          <p>
-            Todos los trabajadores cuentan con el equipo adecuado para su
-            seguridad.
-          </p>
+          <p>Todos los trabajadores cuentan con el equipo adecuado para su seguridad.</p>
         </div>
       </div>
       <div class="carousel-item">
-        <img
-          src="https://via.placeholder.com/1200x400?text=Monitoreo+de+Condiciones+en+Obra"
-          class="d-block w-100"
-          alt="Monitoreo de Condiciones en Obra"
-        />
+        <img src="https://psiconcreto.com/wp-content/uploads/2021/08/supervision-de-obra-4.jpg" class="d-block w-100" alt="Monitoreo de Condiciones en Obra" />
         <div class="carousel-caption d-none d-md-block">
           <h5>Monitoreo de Condiciones en Obra</h5>
-          <p>
-            Supervisión constante para mantener un ambiente seguro en todo
-            momento.
-          </p>
+          <p>Supervisión constante para mantener un ambiente seguro en todo momento.</p>
         </div>
       </div>
     </div>
-    <button
-      class="carousel-control-prev"
-      type="button"
-      data-bs-target="#seguridadCarrusel"
-      data-bs-slide="prev"
-    >
+    <button class="carousel-control-prev" type="button" data-bs-target="#seguridadCarrusel" data-bs-slide="prev">
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Anterior</span>
     </button>
-    <button
-      class="carousel-control-next"
-      type="button"
-      data-bs-target="#seguridadCarrusel"
-      data-bs-slide="next"
-    >
+    <button class="carousel-control-next" type="button" data-bs-target="#seguridadCarrusel" data-bs-slide="next">
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Siguiente</span>
     </button>
   </div>
+  
 
   <!-- Mensaje Final -->
   <p class="mt-4">
@@ -107,17 +97,25 @@
     justify-content: space-between;
     flex-wrap: wrap; /* Permite que los botones se ajusten en varias líneas si es necesario */
   }
+
+  .btn {
+    flex-basis: 200px; /* Ancho fijo para cada botón */
+    flex-grow: 1; /* Permite que el botón crezca si hay espacio disponible */
+    margin: 5px; /* Espaciado uniforme entre botones */
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+    overflow: hidden; /* Oculta el desbordamiento */
+    text-overflow: ellipsis; /* Muestra puntos suspensivos si el texto es demasiado largo */
+  }
 </style>
 <div class="container mt-5">
   <h2 class="text-center">Revisar proyecto activo</h2>
   <!-- Título -->
   <div class="button-container w-100 mt-3">
     <!-- w-100 para que ocupe todo el ancho -->
-    {% for project in projects%}
+    {% for project in projects %}
     <a href="{% url "project_findings" project.id %}">
-      <button class="btn btn-primary flex-fill m-1">{{project.name}}</button>
+      <button class="btn btn-primary flex-fill m-1">{{ project.name }}</button>
     </a>
-
     {% endfor %}
   </div>
 </div>

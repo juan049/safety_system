@@ -1,146 +1,233 @@
-{% extends "./layouts/base.html" %} 
-{% block content %} 
-<h2 class="text-center mb-4">Reporte Semanal De Seguridad de las Obras en México</h2>
-        
-        <!-- Table -->
-        <div class="table-container mb-5">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>Categoría</th>
-                <th>Total Semanal</th>
-                <th>NipponExpress (Apaseo)</th>
-                <th>Hirotec (San Luis)</th>
-                <th>Daikin (San Luis)</th>
-                <th>Nissin (Apaseo)</th>
-                <th>Mitsui (Apaseo)</th>
-                <th>Vuteq (Apaseo)</th>
-                <th>MetalOne (Bajío)</th>
-                <th>TokaiRika (Monterrey)</th>
-                <th>MetalOne (Hidalgo)</th>
-                <th>DaikyoNishikawa(Bajío)</th>
-              </tr>
-            </thead>
-            <tbody id="data-table-body">
-              <!-- Table rows will be inserted here by JavaScript -->
-            </tbody>
-          </table>
-        </div>
+{% extends "./layouts/base.html" %} {% block content %}
+<pre>
+  {{project_grades}}
+</pre>
+<!-- Título de la página -->
+<div class="text-center mb-4">
+  <h1 class="text-uppercase">REPORTE DE SEGURIDAD</h1>
+</div>
+<div class="table-responsive">
+  <table class="table table-bordered table-hover table-striped">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col" class="text-center align-middle">#</th>
+        <th scope="col" class="text-center align-middle">
+          Clasificación de Hallazgo
+        </th>
+        <th scope="col" class="col-1 text-center align-middle">Ponderación</th>
 
-        <!-- Chart -->
-        <div class="chart-container mb-5">
-          <canvas id="data-chart"></canvas>
-        </div>
-      </div>
-    </main>
+        <!-- Columna con ancho fijo, división de texto, y texto centrado verticalmente -->
+        {% for project in projects %}
+        <th
+          scope="col"
+          class="text-center align-middle col-2"
+          style="word-wrap: break-word; white-space: normal"
+        >
+          {{ project.name }}
+        </th>
+        {% endfor %}
+      </tr>
+    </thead>
 
-    <!-- Pie de Página -->
-    <footer class="footer mt-auto">
-      <div class="container text-center">
-        <p class="mb-0">
-          Todos los Derechos Reservados &copy; 2024 Fujita Corporation digitlal
-        </p>
-      </div>
-    </footer>
+    <tbody>
+      {% for finding_classification in finding_classifications %}
+      <tr
+        class="{% if finding_classification.weighting > 3 %}table-danger{% elif finding_classification.weighting > 2 %}table-warning{% else %}table-success{% endif %}"
+      >
+        <th scope="row" class="text-center">{{ finding_classification.id }}</th>
+        <td class="text-center">{{ finding_classification.title }}</td>
+        <td class="text-center">{{ finding_classification.weighting }}</td>
 
-    <!-- Botón Fijo -->
-    <button
-      class="btn btn-primary sticky-button rounded-circle"
-      aria-label="Acción Fija"
-    >
-      <i class="bi bi-arrow-up"></i>
-    </button>
+        <!-- Contenido de las celdas -->
+        {% for project in projects %}
+        <td class="text-center">
+          <!-- prettier-ignore -->
+          {% for finding in project_findings %}
+            {% if finding.project.id == project.id and finding.finding_classification.id == finding_classification.id %}
+                {{ finding.ponderated_finding }}
+            {% endif %}
+          {% endfor %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
 
-    <!-- Bootstrap 5.3 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      <!-- Fila adicional con calificaciones -->
+      <tr>
+        <td colspan="3" class="fw-bold text-center">Calificación Total</td>
 
-    <script>
-      // CSV data
-      const csvData = `No.,Categoría,Total Semanal,NipponExpress (Apaseo),Hirotec (San Luis),Daikin (San Luis),Nissin (Apaseo),Mitsui (Apaseo),Vuteq (Apaseo),MetalOne (Bajío),TokaiRika (Monterrey),MetalOne (Hidalgo),DaikyoNishikawa(Bajío)
-1,Críticios,2,0,0,2,0,0,0,0,0,0,0
-2,Documentos,0,0,0,0,0,0,0,0,0,0,0
-3,Ambiental,2,0,2,0,0,0,0,0,0,0,0
-4,EPP,2,0,0,0,0,0,1,0,1,0,0
-5,Barricadas,8,0,7,0,0,0,1,0,0,0,0
-6,Extintores,4,0,1,2,0,0,1,0,0,0,0
-7,5S,6,0,2,1,0,0,3,0,0,0,0
-8,Herramientas,0,0,0,0,0,0,0,0,0,0,0
-9,Alturas,1,0,0,0,0,0,1,0,0,0,0
-10,Andamios,6,0,1,2,0,0,3,0,0,0,0
-11,CorteSoldadura,0,0,0,0,0,0,0,0,0,0,0
-12,Excavaciones,0,0,0,0,0,0,0,0,0,0,0
-13,VehículosMaquinaria,0,0,0,0,0,0,0,0,0,0,0
-14,Izajes,1,0,0,0,1,0,0,0,0,0,0
-15,Demoliciones,0,0,0,0,0,0,0,0,0,0,0
-16,BloqueoEnergías,0,0,0,0,0,0,0,0,0,0,0
-17,EquipoEléctrico,7,0,1,3,2,0,1,0,0,0,0
-18,EspaciosConfinados,0,0,0,0,0,0,0,0,0,0,0
-19,SustanciasQuímicas,1,0,0,0,0,0,1,0,0,0,0
-20,Otros,3,0,0,1,0,0,1,0,1,0,0
-Promedio Semanal,,97,100,92,90,97,100,92,100,99,100,100`;
+        <!-- Mostrar calificación por proyecto -->
+        {% for project in projects %} {% for project_grade in project_grades %}
+        {% if project.id == project_grade.project.id %}
+        <td
+          class="{% if project_grade.project_grade > 95 %}vivid-green{% elif project_grade.project_grade == 95 %}vivid-yellow{% else %}vivid-red{% endif %} text-center"
+        >
+          {{ project_grade.project_grade }}
+        </td>
+        {% endif %} {% endfor %} {% endfor %}
+      </tr>
+    </tbody>
+  </table>
+</div>
+<!-- Contenedor del gráfico -->
+<div id="chartContainer" class="my-5" style="height: 500px; position: relative">
+  <!-- El gráfico se generará aquí -->
+</div>
+<!-- Título centrado -->
+<h3 class="text-center mt-4">Hallazgos más relevantes</h3>
 
-      // Parse CSV data
-      const parseCSV = (csv) => {
-        const lines = csv.split('\n');
-        return lines.map(line => line.split(','));
-      };
+<!-- Tabla estática de hallazgos más relevantes -->
+<table class="table table-bordered table-hover table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th scope="col" class="text-center align-middle">Proyecto</th>
+      <th
+        scope="col"
+        class="text-center align-middle"
+        style="background-color: #f5c6cb; color: black"
+      >
+        Hallazgos Críticos
+      </th>
+      <th
+        scope="col"
+        class="text-center align-middle"
+        style="background-color: #fff3cd; color: black"
+      >
+        Hallazgos de Alerta
+      </th>
+    </tr>
+  </thead>
 
-      const data = parseCSV(csvData);
+  <tbody>
+    {% for project in projects %}
+    <tr>
+      <td class="text-center align-middle">{{project.name}}</td>
+      <!-- prettier-ignore -->
+      {% for finding_list in project_relevant_findings %} {% if project.id == finding_list.project.id %}
+      <!-- prettier-ignore -->
+      <td class="text-center align-middle" style="background-color: #f5c6cb">
+        <!-- Hallazgos críticos -->
+        <ul class="list-unstyled">
+          {% if finding_list.critical_findings %}
+            {% for critical_finding in finding_list.critical_findings %}
+              <li>• {{ critical_finding.description }} - {{ critical_finding.contractor }}</li>
+            {% endfor %}
+          {% else %}
+            <li>No hay hallazgos críticos disponibles.</li>
+          {% endif %}
+        </ul>
+      </td>
+      <td class="text-center align-middle" style="background-color: #fff3cd">
+        <ul class="list-unstyled">
+          <!-- prettier-ignore -->
+          {% if finding_list.warning_findings %} {% for warning_finding in finding_list.warning_findings %}
+          <!-- prettier-ignore -->
+          <li>• {{ warning_finding.description }} - {{ warning_finding.contractor }}</li>
+          {% endfor %} {% else %}
+          <li>No hay hallazgos de advertencia disponibles.</li>
+          {% endif %}
+        </ul>
+      </td>
 
-      // Populate table
-      const tableBody = document.getElementById('data-table-body');
-      data.slice(1).forEach(row => {
-        const tr = document.createElement('tr');
-        row.forEach(cell => {
-          const td = document.createElement('td');
-          td.textContent = cell;
-          tr.appendChild(td);
-        });
-        tableBody.appendChild(tr);
-      });
+      {% endif %} {% endfor %}
+    </tr>
 
-      // Create chart
-      const ctx = document.getElementById('data-chart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: data.slice(1, -1).map(row => row[1]),
-          datasets: [{
-            label: 'Total Semanal',
-            data: data.slice(1, -1).map(row => parseInt(row[2])),
-            backgroundColor: '#d32f2f',
-            borderColor: '#d32f2f',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Total Semanal'
-              }
-            },
-            x: {
-              title: {
-                display: true,
-                text: 'Categoría'
-              }
-            }
-          },
-          plugins: {
-            title: {
-              display: true,
-              text: 'Total Semanal por Categoría'
-            },
-            legend: {
-              display: false
-            }
-          }
-        }
-      });
-    </script>
+    {% endfor %}
+  </tbody>
+</table>
+<!-- Botón para descargar PDF -->
+<div class="text-center my-5">
+  <a href="{% url "project_findings_report_download" %}" class="btn btn-primary">
+    <i class="fas fa-file"></i> Descargar PDF
+  </a>
+</div>
+
+<!-- CSS personalizado -->
+<style>
+  .vivid-green {
+    background-color: #28a745 !important; /* Verde intenso */
+    color: white;
+  }
+
+  .vivid-yellow {
+    background-color: #ffc107 !important; /* Amarillo más intenso */
+    color: black;
+  }
+
+  .vivid-red {
+    background-color: #dc3545 !important; /* Rojo más intenso */
+    color: white;
+  }
+</style>
+<script>
+  // Datos de los proyectos
+  const projectGrades = {{ grade_data|safe }};
+
+  // Función para generar el gráfico
+  function generateChart() {
+    const chartContainer = document.getElementById("chartContainer");
+    const chartWidth = chartContainer.offsetWidth;
+    const chartHeight = chartContainer.offsetHeight;
+    const margin = { top: 20, right: 20, bottom: 100, left: 40 };
+    const graphWidth = chartWidth - margin.left - margin.right;
+    const graphHeight = chartHeight - margin.top - margin.bottom;
+    const barWidth = graphWidth / projectGrades.length;
+
+    let chartHTML = `
+      <svg width="100%" height="100%">
+        <g transform="translate(${margin.left}, ${margin.top})">
+    `;
+
+    // Eje Y
+    for (let i = 0; i <= 10; i++) {
+      const y = graphHeight - (i / 10) * graphHeight;
+      chartHTML += `
+        <line x1="0" y1="${y}" x2="${graphWidth}" y2="${y}" stroke="#ccc" stroke-dasharray="5,5" />
+        <text x="-5" y="${y}" text-anchor="end" alignment-baseline="middle">${
+        i * 10
+      }%</text>
+      `;
+    }
+
+    // Barras y etiquetas del eje X
+    projectGrades.forEach((item, index) => {
+      const barHeight = (item.project_grade / 100) * graphHeight;
+      const x = index * barWidth;
+      const y = graphHeight - barHeight;
+      const barColor =
+        item.project_grade > 95
+          ? "#28a745"
+          : item.project_grade === 95
+          ? "#ffc107"
+          : "#dc3545";
+
+      chartHTML += `
+        <rect x="${x}" y="${y}" width="${
+        barWidth * 0.8
+      }" height="${barHeight}" fill="${barColor}" />
+        <text x="${x + barWidth / 2}" y="${
+        graphHeight + 20
+      }" text-anchor="middle">${item.project}</text>
+        <text x="${x + barWidth / 2}" y="${
+        y - 5
+      }" text-anchor="middle" fill="black">${item.project_grade}%</text>
+      `;
+    });
+
+    chartHTML += `
+        </g>
+      </svg>
+    `;
+
+    chartContainer.innerHTML = chartHTML;
+  }
+
+  // Ejecutar funciones cuando el DOM esté listo
+  document.addEventListener("DOMContentLoaded", function () {
+    generateChart();
+
+    // Volver a generar el gráfico cuando se redimensione la ventana
+    window.addEventListener("resize", generateChart);
+  });
+</script>
 {% endblock %}

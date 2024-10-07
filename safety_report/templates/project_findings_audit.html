@@ -1,0 +1,32 @@
+{% extends "./layouts/base.html" %} fii{% block content %}
+<h2 class="text-center">AUDITORIA DE SEGURIDAD DEL {{project.name}}</h2>
+
+<div class="table-responsive">
+  <table class="table table-striped table-bordered align-middle">
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col">Título</th>
+        <th scope="col">Descripción</th>
+        <th scope="col">Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Fila de ejemplo -->
+      {% for finding_classification in finding_classifications %}
+      <tr>
+        <td>{{finding_classification.title}}</td>
+        <td>{{finding_classification.description}}</td>
+        <td>
+          <a
+            href="{% url 'project_findings_register' project_id=project.id finding_classification_id=finding_classification.id %}"
+            class="btn btn-primary"
+            >Registra un nuevo hallazgo</a
+          >
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
   <head>
@@ -14,70 +15,14 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-      :root {
-        --bs-primary: #d32f2f;
-        --bs-primary-rgb: 211, 47, 47;
-      }
-      body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        padding-top: 80px; /* Ajustado para el encabezado más alto en móviles */
-      }
-      .navbar-brand img {
-        height: 30px;
-      }
-      .website-name {
-        font-size: 1.2rem;
-        font-weight: bold;
-      }
-      @media (min-width: 768px) {
-        .navbar-brand img {
-          height: 40px;
-        }
-        body {
-          padding-top: 56px; /* Ajustado para el encabezado más corto en escritorio */
-        }
-        .website-name {
-          font-size: 1.8rem;
-        }
-      }
-      .user-icon {
-        width: 32px;
-        height: 32px;
-        background-color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 0.5rem;
-        color: var(--bs-primary);
-        font-weight: bold;
-      }
-      main {
-        flex: 1;
-      }
-      .footer {
-        background-color: #f8f9fa;
-        padding: 1rem 0;
-      }
-      .sticky-button {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
-      }
-      @media (max-width: 767px) {
-        .navbar-brand {
-          font-size: 0.9rem;
-        }
-        .user-info {
-          font-size: 0.8rem;
-        }
-      }
-    </style>
+
+    <!-- Cargar tu propio archivo CSS -->
+    <link rel="stylesheet" href="{% static 'safety_report/css/styles.css' %}" />
+
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <!-- Encabezado Fijo -->
@@ -85,11 +30,7 @@
       <nav class="navbar navbar-expand navbar-dark bg-primary fixed-top">
         <div class="container-fluid">
           <a class="navbar-brand d-flex align-items-center" href="/">
-            <img
-              src="https://www.fujita.com/common/img/header_logo01.png"
-              alt="Logo"
-              class="me-2"
-            />
+            <img src="{% static 'logo.png' %}" alt="Logo" class="me-2" />
           </a>
           <span class="website-name text-white mx-auto d-none d-md-block"
             >FUJITA CORPORATION DIGITAL</span
@@ -102,7 +43,42 @@
         </div>
       </nav>
     </header>
-
+    {% if project %}
+    <!-- Botones de navegación -->
+    <div class="container my-3">
+      <div class="row">
+        <div class="col-3">
+          <a href="{% url 'home' %}" class="w-100">
+            <button class="btn btn-primary w-100">
+              REGRESAR A LISTA DE PROYECTOS
+            </button>
+          </a>
+        </div>
+        <div class="col-3">
+          <a href=" {%url 'project_findings' project.id %}" class="w-100">
+            <button class="btn btn-primary w-100">VER HALLAZGOS</button>
+          </a>
+        </div>
+        <div class="col-3">
+          <a
+            href="{% url 'project_findings_audit'  project.id %}"
+            class="w-100"
+          >
+            <button class="btn btn-primary w-100">
+              REALIZAR AUDITORIA DE SEGURIDAD
+            </button>
+          </a>
+        </div>
+        <div class="col-3">
+          <a href="{% url 'project_findings_report' %}" class="w-100">
+            <button class="btn btn-primary w-100">
+              VER REPORTE DE SEGURIDAD
+            </button>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
     <!-- Contenido Principal -->
     <main class="py-4 py-md-5">
       <div id="main-container" class="container">
@@ -114,7 +90,8 @@
     <footer class="footer mt-auto fixed-bottom">
       <div class="container text-center">
         <p class="mb-0">
-          Todos los Derechos Reservados &copy; 2024 Fujita Corporation digitlal
+          Todos los Derechos Reservados Fujita Corporation digitlal &copy;
+          <span id="year-element"></span>
         </p>
       </div>
     </footer>
@@ -129,5 +106,8 @@
 
     <!-- Bootstrap 5.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Cargar tu propio archivo JS -->
+    <script src="{% static 'safety_report/js/scripts.js' %}"></script>
   </body>
 </html>

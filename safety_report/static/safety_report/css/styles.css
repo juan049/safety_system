@@ -1,0 +1,61 @@
+:root {
+  --bs-primary: #d32f2f;
+  --bs-primary-rgb: 211, 47, 47;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: 80px; /* Ajustado para el encabezado más alto en móviles */
+}
+.navbar-brand img {
+  height: 30px;
+}
+.website-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+@media (min-width: 768px) {
+  .navbar-brand img {
+    height: 40px;
+  }
+  body {
+    padding-top: 56px; /* Ajustado para el encabezado más corto en escritorio */
+  }
+  .website-name {
+    font-size: 1.8rem;
+  }
+}
+.user-icon {
+  width: 32px;
+  height: 32px;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+  color: var(--bs-primary);
+  font-weight: bold;
+}
+main {
+  flex: 1;
+}
+.footer {
+  background-color: #f8f9fa;
+  padding: 1rem 0;
+}
+.sticky-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+@media (max-width: 767px) {
+  .navbar-brand {
+    font-size: 0.9rem;
+  }
+  .user-info {
+    font-size: 0.8rem;
+  }
+}

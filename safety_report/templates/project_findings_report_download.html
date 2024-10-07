@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Informe de Hallazgos del Proyecto</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      th,
+      td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .critical {
+        background-color: #ffcccc;
+      }
+      .warning {
+        background-color: #fff3cd;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Informe de Hallazgos del Proyecto</h1>
+
+    <h2>Resumen de Hallazgos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Proyecto</th>
+          <th>Clasificación de Hallazgos</th>
+          <th>Cantidad de Hallazgos</th>
+          <th>Calificación del Proyecto</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in project_findings %}
+        <tr>
+          <td>{{ item.project.name }}</td>
+          <td>{{ item.finding_classification.name }}</td>
+          <td>{{ item.finding_amount }}</td>
+          <td>{{ item.project_grade }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Hallazgos Relevantes</h2>
+    {% for relevant in project_relevant_findings %}
+    <h3>{{ relevant.project.name }}</h3>
+    <h4>Hallazgos Críticos</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Descripción</th>
+          <th>Fecha de Creación</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for finding in relevant.critical_findings %}
+        <tr class="critical">
+          <td>{{ finding.id }}</td>
+          <td>{{ finding.description }}</td>
+          <td>{{ finding.created_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h4>Hallazgos de Advertencia</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Descripción</th>
+          <th>Fecha de Creación</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for finding in relevant.warning_findings %}
+        <tr class="warning">
+          <td>{{ finding.id }}</td>
+          <td>{{ finding.description }}</td>
+          <td>{{ finding.created_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endfor %}
+  </body>
+</html>
