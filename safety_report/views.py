@@ -1,11 +1,14 @@
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
+from django.template import Context
+from django.template.loader import get_template
+from django.contrib.auth.decorators import login_required
+
 from .forms import FindingRegisterForm
 
 from xhtml2pdf import pisa
-from django.template import Context
-from django.template.loader import get_template
+
 
 from datetime import datetime, timedelta
 
@@ -13,12 +16,13 @@ from datetime import datetime, timedelta
 from .models import Project, Finding, FindingClassification, Contractor, Image, ProjectContractor
 
 # Create your views here.
+
 def home(request):
     projects = list(Project.objects.all())
     return render(request, 'home.html', {
         "projects": projects
     })
-    
+
 def project_findings_audit(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
@@ -48,7 +52,7 @@ def project_findings_register(request, project_id, finding_classification_id):
         })
 
 
-
+@login_required
 def project_findings(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     

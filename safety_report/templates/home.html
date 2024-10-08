@@ -107,6 +107,7 @@
     text-overflow: ellipsis; /* Muestra puntos suspensivos si el texto es demasiado largo */
   }
 </style>
+{% if user.is_authenticated %}
 <div class="container mt-5">
   <h2 class="text-center">Revisar proyecto activo</h2>
   <!-- Título -->
@@ -118,5 +119,5 @@
     </a>
     {% endfor %}
   </div>
-</div>
+</div>{% endif %}
 {% endblock%}

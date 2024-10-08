@@ -35,10 +35,24 @@
           <span class="website-name text-white mx-auto d-none d-md-block"
             >FUJITA CORPORATION DIGITAL</span
           >
+
           <div class="user-info d-flex align-items-center">
+            {% if user.is_authenticated %}
             <span class="text-white me-2 d-none d-md-inline">Bienvenido</span>
-            <div class="user-icon">J</div>
-            <span class="text-white">Juan Pérez</span>
+            <div class="user-icon">
+              <!-- prettier-ignore -->
+              {{user.first_name|slice:":1" | upper }}{{user.last_name|slice:":1"| upper }}
+              <!-- prettier-ignore -->
+            </div>
+            <span class="text-white"
+              >{{user.first_name}} {{user.last_name}}</span
+            >
+            {% else %}
+            <!-- Mostrar un botón de inicio de sesión con estilo de Bootstrap -->
+            <a href="{% url 'login' %}" class="btn btn-success"
+              >Iniciar sesión</a
+            >
+            {% endif %}
           </div>
         </div>
       </nav>
