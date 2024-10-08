@@ -64,7 +64,7 @@ def project_findings(request, project_id):
         "findings": findings
         
     })
-
+#
 
     
 def project_findings_upload_correction_image(request, finding_id):
