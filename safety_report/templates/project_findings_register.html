@@ -5,12 +5,88 @@
 </div>
 
 <!-- Formulario de registro de hallazgo -->
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %} {{ finding_register_form}}
+<form method="post" enctype="multipart/form-data" id="finding-form">
+  {% csrf_token %} {{ finding_register_form }}
+
+  <!-- Sección para el Canvas -->
+  <div class="text-center mt-2">
+    <label for="image-canvas" class="form-label">Dibuja sobre la imagen</label>
+    <canvas
+      id="image-canvas"
+      width="500"
+      height="400"
+      style="border: 1px solid #000"
+    ></canvas>
+    <input type="hidden" name="image_data" id="image-data" />
+  </div>
+
   <!-- Botón de guardar -->
   <div class="text-center mt-2">
     <button type="submit" class="btn btn-primary">Guardar Hallazgo</button>
   </div>
 </form>
+
+<script>
+  const canvas = document.getElementById("image-canvas");
+  const ctx = canvas.getContext("2d");
+  let drawing = false;
+
+  // Configurar el color y el grosor de la línea
+  ctx.strokeStyle = "red"; // Color de la línea
+  ctx.lineWidth = 2; // Grosor de la línea
+
+  // Cargar la imagen
+  document
+    .getElementById("id_before_image")
+    .addEventListener("change", function (event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas antes de dibujar la nueva imagen
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+  // Iniciar el dibujo
+  canvas.addEventListener("mousedown", function (e) {
+    drawing = true;
+    ctx.beginPath();
+    ctx.moveTo(e.offsetX, e.offsetY);
+  });
+
+  // Dibujar en el canvas
+  canvas.addEventListener("mousemove", function (e) {
+    if (drawing) {
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+    }
+  });
+
+  // Terminar el dibujo
+  canvas.addEventListener("mouseup", function () {
+    drawing = false;
+    ctx.closePath();
+
+    // Guardar la imagen como datos URL en un campo oculto
+    const imageData = canvas.toDataURL("image/png");
+    document.getElementById("image-data").value = imageData;
+  });
+
+  // Prevenir que el formulario se envíe sin imagen
+  document
+    .getElementById("finding-form")
+    .addEventListener("submit", function (e) {
+      const imageData = document.getElementById("image-data").value;
+      if (!imageData) {
+        e.preventDefault();
+        alert("Por favor, dibuje sobre la imagen antes de guardar.");
+      }
+    });
+</script>
 
 {% endblock %}

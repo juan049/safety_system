@@ -41,12 +41,43 @@
             <span class="text-white me-2 d-none d-md-inline">Bienvenido</span>
             <div class="user-icon">
               <!-- prettier-ignore -->
-              {{user.first_name|slice:":1" | upper }}{{user.last_name|slice:":1"| upper }}
+              {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
               <!-- prettier-ignore -->
             </div>
             <span class="text-white"
-              >{{user.first_name}} {{user.last_name}}</span
+              >{{ user.first_name }} {{ user.last_name }}</span
             >
+
+            <!-- Dropdown de usuario -->
+            <div class="dropdown ms-3">
+              <button
+                class="btn btn-secondary dropdown-toggle"
+                type="button"
+                id="userDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Opciones
+              </button>
+              <ul
+                class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="userDropdown"
+              >
+                <li><a class="dropdown-item" href="#">Cuenta</a></li>
+                <li>
+                  <form
+                    action="{% url 'logout' %}"
+                    method="post"
+                    style="display: inline"
+                  >
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item">
+                      Cerrar sesión
+                    </button>
+                  </form>
+                </li>
+              </ul>
+            </div>
             {% else %}
             <!-- Mostrar un botón de inicio de sesión con estilo de Bootstrap -->
             <a href="{% url 'login' %}" class="btn btn-success"

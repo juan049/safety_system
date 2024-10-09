@@ -4,11 +4,12 @@ from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 
 from .forms import FindingRegisterForm
 
 from xhtml2pdf import pisa
-
+import base64
 
 from datetime import datetime, timedelta
 
@@ -37,10 +38,21 @@ def project_findings_register(request, project_id, finding_classification_id):
     
     if request.method == 'POST':
         finding_register_form = FindingRegisterForm(request.POST, request.FILES, project_id=project_id, finding_classification_id=finding_classification_id)
+
+        # Obtener la imagen del canvas desde el campo oculto
+        image_data = request.POST.get('image_data')  # Asumiendo que el campo oculto se llama 'image_data'
         
         if finding_register_form.is_valid():
             finding = finding_register_form.save(commit=False)
             finding.project_id = project_id  # Asignar el project_id aquí
+            finding.author = request.user
+
+            # Guardar la imagen del canvas si se proporciona
+            if image_data:
+                # Aquí puedes procesar la imagen (opcional)
+                # Por ejemplo, guardar la imagen en un campo de modelo específico o convertirla
+                finding.before_image.save(finding.title + '.png', ContentFile(base64.b64decode(image_data.split(',')[1])), save=False)
+
             finding.save()
             # Redirigir o mostrar mensaje de éxito
             return redirect('project_findings_audit', project_id=project_id)
@@ -48,8 +60,9 @@ def project_findings_register(request, project_id, finding_classification_id):
         finding_register_form = FindingRegisterForm(project_id=project_id, finding_classification_id=finding_classification_id)
 
     return render(request, 'project_findings_register.html', {
-        'project':project,'finding_register_form': finding_register_form
-        })
+        'project': project,
+        'finding_register_form': finding_register_form,
+    })
 
 
 @login_required

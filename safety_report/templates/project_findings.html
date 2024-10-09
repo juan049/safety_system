@@ -10,19 +10,29 @@
   <div class="card mb-4">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center">
-        <h5 class="card-title fs-3 fw-bold">{{finding.title}}</h5>
-        {%if finding.status%}
+        <div class="d-flex align-items-center">
+          <h5 class="card-title fs-3 fw-bold mb-0">{{ finding.title }}</h5>
+          {% if finding.finding_classification.weighting == 6 %}
+          <span class="text-danger fw-bold text-uppercase ms-2">
+            🚨 HALLAZGO CRÍTICO 🚨
+          </span>
+          {% endif %}
+        </div>
+        {% if finding.status %}
         <span class="badge bg-success rounded-pill">Hallazgo Cerrado</span>
-        {%else%}
+        {% else %}
         <span class="badge bg-danger rounded-pill">Hallazgo No Cerrado</span>
-        {%endif%}
+        {% endif %}
       </div>
 
       <!-- Texto en pequeño e itálica: Publicado por, alineado a la izquierda -->
       <div class="text-start mb-3">
         <small class="text-muted fst-italic">
-          Publicado por: <strong>{{finding.author.username}}</strong> el
-          {{finding.created_at|date:"Y-m-d"}}
+          Publicado por:
+          <strong
+            >{{finding.author.first_name}} {{finding.author.last_name}}</strong
+          >
+          el {{finding.created_at|date:"Y-m-d"}}
         </small>
       </div>
 
