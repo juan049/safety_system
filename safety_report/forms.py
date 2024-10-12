@@ -1,5 +1,5 @@
 from django import forms
-from .models import Finding, Project, ProjectContractor, FindingClassification
+from .models import Finding, Project, ProjectContractor, FindingClassification, Comment
 
 class ProjectRegisterForm(forms.ModelForm):
     class Meta:

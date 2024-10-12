@@ -7,6 +7,9 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
 
+from django.http import JsonResponse
+
+
 from .forms import ProjectRegisterForm, FindingRegisterForm
 
 from xhtml2pdf import pisa
@@ -15,7 +18,7 @@ import base64
 from datetime import datetime, timedelta
 
 
-from .models import Project, Finding, FindingClassification, Contractor, Image, ProjectContractor
+from .models import Project, Finding, FindingClassification, Contractor, Image, ProjectContractor, Comment
 
 # Create your views here.
 
@@ -24,6 +27,10 @@ def home(request):
     return render(request, 'home.html', {
         "projects": projects
     })
+#Listado de proyectos
+def projects(request):
+    projects = Project.objects.all()
+    return render(request, 'projects.html', {"projects": projects})
 #Crear proyecto
 def project_register(request):
     if request.method == 'POST':
@@ -54,6 +61,7 @@ def project_findings_register(request, project_id, finding_classification_id):
     project = get_object_or_404(Project, id=project_id)
     
     if request.method == 'POST':
+        
         finding_register_form = FindingRegisterForm(request.POST, request.FILES, project_id=project_id, finding_classification_id=finding_classification_id)
 
         # Obtener la imagen del canvas desde el campo oculto
@@ -126,6 +134,38 @@ def project_findings_upload_correction_image(request, finding_id):
         print('Error al subir la imagen.html')            
 
 
+@login_required
+def project_findings_comment(request, project_id, finding_id):
+    finding = get_object_or_404(Finding, id=finding_id)
+
+    if request.method == 'POST':
+        # Obtiene el texto del comentario
+        text = request.POST.get('text', '').strip()  # 'strip()' elimina espacios en blanco
+
+        # Solo guarda el comentario si hay texto
+        if text:
+            comment = Comment(
+                finding_id=finding,
+                user_id=request.user,
+                text=text,
+            )
+            comment.save()  # Guarda el comentario en la base de datos
+
+        return redirect('project_findings', project_id=project_id)  # Redirige a la página de hallazgos del proyecto
+
+    return render(request, 'project_findings.html', {'finding': finding})
+      
+
+def project_findings_change_status(request, project_id, finding_id):
+    # Obtiene el hallazgo por su ID
+    finding = get_object_or_404(Finding, id=finding_id)
+    
+    # Cambia el estado del hallazgo
+    finding.status = not finding.status  # Cambia el estado de True a False o viceversa
+    finding.save()  # Guarda el hallazgo actualizado
+
+    # Redirige de vuelta a la página del proyecto o a donde necesites
+    return redirect('project_findings', project_id=project_id)
 
 def project_findings_report(request):
     # Obtener la fecha de hoy

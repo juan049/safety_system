@@ -63,7 +63,24 @@
                 class="dropdown-menu dropdown-menu-end"
                 aria-labelledby="userDropdown"
               >
-                <li><a class="dropdown-item" href="#">Cuenta</a></li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'projects' %}"
+                    >Proyectos</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{% url 'project_findings_report' %}"
+                    >Reporte de seguridad</a
+                  >
+                </li>
+
+                {% if request.user.is_staff %}
+                <li>
+                  <a class="dropdown-item" href="/admin">Administrador</a>
+                </li>
+                {% endif %}
                 <li>
                   <form
                     action="{% url 'logout' %}"
@@ -92,32 +109,18 @@
     <!-- Botones de navegación -->
     <div class="container my-3">
       <div class="row">
-        <div class="col-3">
-          <a href="{% url 'home' %}" class="w-100">
-            <button class="btn btn-primary w-100">
-              REGRESAR A LISTA DE PROYECTOS
-            </button>
-          </a>
-        </div>
-        <div class="col-3">
+        <div class="col-6">
           <a href=" {%url 'project_findings' project.id %}" class="w-100">
             <button class="btn btn-primary w-100">VER HALLAZGOS</button>
           </a>
         </div>
-        <div class="col-3">
+        <div class="col-6">
           <a
             href="{% url 'project_findings_audit'  project.id %}"
             class="w-100"
           >
             <button class="btn btn-primary w-100">
               REALIZAR AUDITORIA DE SEGURIDAD
-            </button>
-          </a>
-        </div>
-        <div class="col-3">
-          <a href="{% url 'project_findings_report' %}" class="w-100">
-            <button class="btn btn-primary w-100">
-              VER REPORTE DE SEGURIDAD
             </button>
           </a>
         </div>

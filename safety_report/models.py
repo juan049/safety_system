@@ -173,9 +173,8 @@ class Finding(models.Model):
     
 #Comentarios
 class Comment(models.Model):
-    finding = models.ForeignKey(Finding, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    before_comment = models.BooleanField()
+    finding_id = models.ForeignKey(Finding, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
