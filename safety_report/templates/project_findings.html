@@ -1,4 +1,4 @@
-{% extends "./layouts/base.html" %} {% block content %}
+{% extends "./layouts/base.html" %} {% load static %} {% block content %}
 <!-- Título Fijo -->
 
 <h2 class="text-center">HALLAZGOS DE SEGURIDAD EN EL PROYECTO: {{project}}</h2>
@@ -25,14 +25,14 @@
         {% endif %}
       </div>
 
-      <!-- Texto en pequeño e itálica: Publicado por, alineado a la izquierda -->
       <div class="text-start mb-3">
         <small class="text-muted fst-italic">
           Publicado por:
           <strong
-            >{{finding.author.first_name}} {{finding.author.last_name}}</strong
+            >{{ finding.author.first_name }} {{ finding.author.last_name
+            }}</strong
           >
-          el {{finding.created_at|date:"Y-m-d"}}
+          el {{ finding.created_at|date:"Y-m-d" }}
         </small>
       </div>
 
@@ -47,7 +47,7 @@
           />
         </div>
         <div class="col-md-6 mb-3">
-          {%if finding.after_image%}
+          {% if finding.after_image %}
           <img
             src="{{ finding.after_image.url }}"
             style="width: 500px; height: 300px"
@@ -55,7 +55,7 @@
             alt="Foto de hallazgo"
             loading="lazy"
           />
-          {%else%}
+          {% else %}
           <div
             class="d-flex flex-column align-items-center justify-content-center"
             style="
@@ -76,7 +76,6 @@
             >
               Subir Foto
             </button>
-
             <form
               id="upload-form-{{ finding.id }}"
               method="post"
@@ -94,33 +93,60 @@
               />
             </form>
           </div>
-          {%endif%}
+          {% endif %}
         </div>
       </div>
 
       <p>
-        <strong>Clasificación del hallazgo: </strong
-        >{{finding.get_finding_classification.title}}
+        <strong>Clasificación del hallazgo: </strong>{{
+        finding.get_finding_classification.title }}
       </p>
       <p>
-        <strong>Compañía responsable: </strong>{{finding.get_contractor.name}}
+        <strong>Compañía responsable: </strong>{{ finding.get_contractor.name }}
       </p>
 
       <div class="description-section">
         <h6><strong>Descripción del Hallazgo:</strong></h6>
-        <p>{{finding.description}}</p>
+        <p>{{ finding.description }}</p>
+      </div>
+
+      <div class="row mb-3">
+        <h6 class="text-center fw-bold">Plano de Ubicación</h6>
+        <p>
+          Coordenadas top: {{ finding.pin_y }}px; left: {{ finding.pin_x }}px;
+        </p>
+        <div class="col-12">
+          <div class="position-relative">
+            <img
+              src="{{ finding.project.pdf_image.url }}"
+              alt="Plano del Proyecto"
+              class="img-fluid"
+              style="max-width: 100%; height: auto"
+            />
+            <img
+              src="{% static 'images/pin.png' %}"
+              alt="Pin"
+              class="position-absolute"
+              style="width: 24px; height: 24px; top: {{ finding.pin_y }}px; left: {{ finding.pin_x }}px;"
+            />
+          </div>
+        </div>
       </div>
 
       <div class="comments-section">
         <h6 class="fs-5 fw-bold">Comentarios</h6>
+        {% for comment in finding.comments.all %}
         <div class="comment mb-2">
-          <strong>Juan Pérez:</strong> Este equipo no cumple con las normativas.
+          <strong>{{ comment.author.get_full_name }}:</strong> {{
+          comment.content }}
         </div>
+        {% endfor %}
         <div class="input-group mt-3">
           <input
             type="text"
             class="form-control"
             placeholder="Añadir un comentario..."
+            aria-label="Comentario"
           />
           <button class="btn btn-outline-secondary" type="button">
             Comentar

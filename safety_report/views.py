@@ -5,8 +5,9 @@ from django.template import Context
 from django.template.loader import get_template
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
+from django.core.paginator import Paginator
 
-from .forms import FindingRegisterForm
+from .forms import ProjectRegisterForm, FindingRegisterForm
 
 from xhtml2pdf import pisa
 import base64
@@ -23,6 +24,22 @@ def home(request):
     return render(request, 'home.html', {
         "projects": projects
     })
+#Crear proyecto
+def project_register(request):
+    if request.method == 'POST':
+        form = ProjectRegisterForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Verificar si el archivo PDF fue cargado
+            if 'pdf_plan' in request.FILES:
+                print("PDF cargado correctamente")
+            else:
+                print("No se ha cargado ningún PDF")
+
+            project = form.save()
+            return redirect('project_findings', project_id=project.id)
+    else:
+        form = ProjectRegisterForm()
+    return render(request, 'project_register.html', {'form': form})
 
 def project_findings_audit(request, project_id):
     project = get_object_or_404(Project, id=project_id)
@@ -41,16 +58,25 @@ def project_findings_register(request, project_id, finding_classification_id):
 
         # Obtener la imagen del canvas desde el campo oculto
         image_data = request.POST.get('image_data')  # Asumiendo que el campo oculto se llama 'image_data'
-        
+        print(request.POST)
+        # Obtener las coordenadas desde el request
+        pin_x = request.POST.get('pin_x')  # Cambia 'pin_x' al nombre del campo correcto en tu formulario
+        pin_y = request.POST.get('pin_y')  # Cambia 'pin_y' al nombre del campo correcto en tu formulario
+
+        # Imprimir las coordenadas para depuración
+        print(f"Coordenadas recibidas: pin_x={pin_x}, pin_y={pin_y}")
+
         if finding_register_form.is_valid():
             finding = finding_register_form.save(commit=False)
             finding.project_id = project_id  # Asignar el project_id aquí
             finding.author = request.user
 
+            # Asignar las coordenadas
+            finding.pin_x = pin_x
+            finding.pin_y = pin_y
+            print(f'Coordenadas recibidas: pin_x={request.POST.get("pin_x")}, pin_y={request.POST.get("pin_y")}')
             # Guardar la imagen del canvas si se proporciona
             if image_data:
-                # Aquí puedes procesar la imagen (opcional)
-                # Por ejemplo, guardar la imagen en un campo de modelo específico o convertirla
                 finding.before_image.save(finding.title + '.png', ContentFile(base64.b64decode(image_data.split(',')[1])), save=False)
 
             finding.save()
@@ -69,15 +95,22 @@ def project_findings_register(request, project_id, finding_classification_id):
 def project_findings(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
-    findings = list(Finding.objects.filter(project_id=project_id))
-    findings.reverse()
-    print(findings)
+    # Obtiene los hallazgos ordenados por fecha de creación de forma descendente
+    findings = Finding.objects.filter(project_id=project_id).order_by('-created_at')
+    
+    # Paginación: muestra 15 hallazgos por página
+    paginator = Paginator(findings, 15)  # 15 hallazgos por página
+    page_number = request.GET.get('page')
+    findings_page = paginator.get_page(page_number)
+
+    # Aquí puedes agregar lógica adicional para estadísticas, si lo deseas
+    total_findings = findings.count()
+    
     return render(request, 'project_findings.html', {
         "project": project,
-        "findings": findings
-        
+        "findings": findings_page,
+        "total_findings": total_findings  # Pasar total de hallazgos al contexto
     })
-#
 
     
 def project_findings_upload_correction_image(request, finding_id):

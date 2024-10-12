@@ -5,7 +5,12 @@ import uuid
 from PIL import Image, ImageOps
 from django.core.files.base import ContentFile
 from io import BytesIO
+import fitz  # PyMuPDF para extraer imágenes de PDFs
 
+def get_pdf_image_path(instance, filename):
+    ext = filename.split('.')[-1]
+    unique_filename = f"{uuid.uuid4()}.{ext}"
+    return f"projects/pdf_images/{unique_filename}"
 
 
 def get_image_path(instance, filename):
@@ -14,13 +19,56 @@ def get_image_path(instance, filename):
     unique_filename = f"{uuid.uuid4()}.{ext}"  # Crear un nombre único
     return f"findings/{unique_filename}"  #
 
-# Proyectos
+# Modelo Project
+import uuid
+from django.core.files.base import ContentFile
+from django.db import models
+from PIL import Image
+import fitz  # PyMuPDF
+from io import BytesIO
+
 class Project(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
-    
-    def __str__(self) -> str:
+    pdf_plan = models.FileField(upload_to="projects/plans/", null=True)
+    pdf_image = models.ImageField(upload_to="projects/pdf_images/", blank=True, null=True)
+
+    def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # Generar un nombre único para el PDF
+        if self.pdf_plan:
+            # Crear un nuevo nombre para el archivo PDF
+            new_pdf_name = f"{uuid.uuid4()}.pdf"
+            self.pdf_plan.name = new_pdf_name
+
+        # Guarda la instancia primero para asegurarte de que el archivo PDF esté disponible
+        super().save(*args, **kwargs)
+
+        # Si se carga un PDF y no hay imagen previa, se genera la imagen
+        if self.pdf_plan and not self.pdf_image:
+            self.pdf_image = self.convert_pdf_to_image(self.pdf_plan)
+
+            # Vuelve a guardar el modelo con la imagen generada
+            super().save(*args, **kwargs)
+
+    def convert_pdf_to_image(self, pdf_file):
+        # Abrir el archivo PDF con PyMuPDF
+        pdf_doc = fitz.open(pdf_file.path)
+        page = pdf_doc.load_page(0)  # Cargar la primera página
+        pix = page.get_pixmap()  # Convertir la página a una imagen
+        
+        # Convertir la imagen a formato PIL
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        img_io = BytesIO()
+        img.save(img_io, format="PNG", optimize=True)
+
+        # Crear un ContentFile con la imagen generada usando un UUID
+        new_image_name = f"{uuid.uuid4()}.png"
+        new_image = ContentFile(img_io.getvalue(), name=new_image_name)
+        return new_image
+
 
 class FindingClassification(models.Model):
     title = models.CharField(max_length=200)
@@ -75,6 +123,10 @@ class Finding(models.Model):
     
     # Nuevo campo para el autor (quien creó el hallazgo)
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    # Nuevos campos para las coordenadas
+    pin_x = models.FloatField(null=True, blank=True)  # Coordenada X
+    pin_y = models.FloatField(null=True, blank=True)  # Coordenada Y
     
     # Sobrescribir el método save para redimensionar y comprimir las imágenes
     def save(self, *args, **kwargs):
@@ -118,7 +170,6 @@ class Finding(models.Model):
     
     def get_contractor(self):
         return self.contractor
-
     
 #Comentarios
 class Comment(models.Model):

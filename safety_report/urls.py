@@ -8,6 +8,8 @@ urlpatterns = [
     #Home
     path('', views.home, name='home'),
     path('home/', views.home, name='home'),
+    #registrar proyecto
+    path('project_register', views.project_register, name='project_register'),
     #Inicar auditoria de seguridad
     path('project_findings/<int:project_id>/audit', views.project_findings_audit, name='project_findings_audit'),
     #REgistrar finding

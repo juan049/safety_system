@@ -1,55 +1,158 @@
-{% extends "./layouts/base.html" %} fii{% block content %}
-<!-- Título de la página -->
-<div class="text-center mb-4">
-  <h1 class="text-uppercase">Registro de Hallazgo de Seguridad</h1>
-</div>
-
+{% extends "./layouts/base.html" %} {% load static %} {% block content %}
 <!-- Formulario de registro de hallazgo -->
 <form method="post" enctype="multipart/form-data" id="finding-form">
-  {% csrf_token %} {{ finding_register_form }}
+  {% csrf_token %} {{ finding_register_form.as_p }}
 
-  <!-- Sección para el Canvas -->
-  <div class="text-center mt-2">
-    <label for="image-canvas" class="form-label">Dibuja sobre la imagen</label>
-    <canvas
-      id="image-canvas"
-      width="500"
-      height="400"
-      style="border: 1px solid #000"
-    ></canvas>
-    <input type="hidden" name="image_data" id="image-data" />
+  <!-- Campo oculto para almacenar los datos de la imagen con el dibujo -->
+  <input type="hidden" name="image_data" id="image-data" />
+
+  <!-- Campos ocultos para las coordenadas del pin -->
+  <input type="hidden" name="pin_x" id="id_pin_x" value="" />
+  <input type="hidden" name="pin_y" id="id_pin_y" value="" />
+
+  <!-- Botón para seleccionar la ubicación en el plano -->
+  <div class="text-center mt-4">
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#pinModal"
+    >
+      Seleccionar ubicación en el plano
+    </button>
   </div>
 
   <!-- Botón de guardar -->
-  <div class="text-center mt-2">
-    <button type="submit" class="btn btn-primary">Guardar Hallazgo</button>
+  <div class="text-center mt-4">
+    <button type="submit" class="btn btn-success">Guardar Hallazgo</button>
   </div>
 </form>
 
+<!-- Modal para seleccionar la ubicación en el plano -->
+<div
+  class="modal fade"
+  id="pinModal"
+  tabindex="-1"
+  aria-labelledby="pinModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="pinModalLabel">
+          Selecciona la ubicación en el plano
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Cerrar"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div style="position: relative">
+          <img
+            id="planImage"
+            src="{{ project.pdf_image.url }}"
+            class="img-fluid"
+            alt="Plano"
+            style="cursor: crosshair"
+          />
+          <!-- Pin -->
+          <span id="pin" style="position: absolute; display: none">
+            <img
+              src="{% static 'pin.png' %}"
+              alt="Pin"
+              style="width: 24px; height: 24px"
+            />
+          </span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-primary"
+          id="acceptPinButton"
+          data-bs-dismiss="modal"
+        >
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal con el Canvas para dibujar -->
+<div
+  class="modal fade"
+  id="canvasModal"
+  tabindex="-1"
+  aria-labelledby="canvasModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="canvasModalLabel">
+          Dibujar sobre la fotografía
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Cerrar"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <canvas
+          id="image-canvas"
+          width="500"
+          height="400"
+          style="border: 1px solid #000"
+        ></canvas>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="acceptCanvasButton">
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+  // Variables para dibujar sobre la imagen
   const canvas = document.getElementById("image-canvas");
   const ctx = canvas.getContext("2d");
   let drawing = false;
 
   // Configurar el color y el grosor de la línea
-  ctx.strokeStyle = "red"; // Color de la línea
-  ctx.lineWidth = 2; // Grosor de la línea
+  ctx.strokeStyle = "red";
+  ctx.lineWidth = 2;
 
-  // Cargar la imagen
+  // Abrir el modal al seleccionar una imagen en el campo de fotografía existente
   document
     .getElementById("id_before_image")
     .addEventListener("change", function (event) {
       const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const img = new Image();
-        img.onload = function () {
-          ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas antes de dibujar la nueva imagen
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas antes de dibujar la nueva imagen
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          };
+          img.src = e.target.result;
+
+          // Abrir el modal automáticamente al cargar la imagen
+          const modal = new bootstrap.Modal(
+            document.getElementById("canvasModal")
+          );
+          modal.show();
         };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
+      }
     });
 
   // Iniciar el dibujo
@@ -71,20 +174,69 @@
   canvas.addEventListener("mouseup", function () {
     drawing = false;
     ctx.closePath();
-
-    // Guardar la imagen como datos URL en un campo oculto
-    const imageData = canvas.toDataURL("image/png");
-    document.getElementById("image-data").value = imageData;
   });
 
-  // Prevenir que el formulario se envíe sin imagen
+  // Guardar la imagen al cerrar el modal
+  document
+    .getElementById("acceptCanvasButton")
+    .addEventListener("click", function () {
+      const imageData = canvas.toDataURL("image/png");
+      document.getElementById("image-data").value = imageData;
+      const modal = bootstrap.Modal.getInstance(
+        document.getElementById("canvasModal")
+      );
+      modal.hide();
+    });
+
+  // Variables para la selección del pin en el plano
+  const planImage = document.getElementById("planImage");
+  const pin = document.getElementById("pin");
+  const pinXField = document.getElementById("id_pin_x");
+  const pinYField = document.getElementById("id_pin_y");
+
+  // Al hacer clic en el plano, colocar el pin
+  planImage.addEventListener("click", function (event) {
+    const rect = planImage.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Mostrar el pin en la ubicación seleccionada
+    pin.style.left = `${x - 12}px`; // 12 es la mitad del tamaño del pin (24px)
+    pin.style.top = `${y - 12}px`;
+    pin.style.display = "block";
+
+    // Guardar las coordenadas en los campos ocultos del formulario
+    pinXField.value = x;
+    pinYField.value = y;
+
+    // Agrega esto para verificar las coordenadas
+    console.log(`Coordenadas del pin: x=${x}, y=${y}`);
+  });
+
+  // Guardar la posición del pin al cerrar el modal
+  document
+    .getElementById("acceptPinButton")
+    .addEventListener("click", function () {
+      const modal = bootstrap.Modal.getInstance(
+        document.getElementById("pinModal")
+      );
+      modal.hide();
+    });
+
+  // Validar antes de enviar
   document
     .getElementById("finding-form")
     .addEventListener("submit", function (e) {
       const imageData = document.getElementById("image-data").value;
+      const pinXValue = pinXField.value;
+      const pinYValue = pinYField.value;
+
       if (!imageData) {
         e.preventDefault();
-        alert("Por favor, dibuje sobre la imagen antes de guardar.");
+        alert("Por favor, dibuja sobre la imagen antes de guardar.");
+      } else if (pinXValue === "" || pinYValue === "") {
+        e.preventDefault();
+        alert("Por favor, selecciona una ubicación en el plano.");
       }
     });
 </script>
