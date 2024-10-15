@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
-from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
 
@@ -99,7 +98,6 @@ def project_findings_register(request, project_id, finding_classification_id):
     })
 
 
-@login_required
 def project_findings(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
@@ -134,7 +132,7 @@ def project_findings_upload_correction_image(request, finding_id):
         print('Error al subir la imagen.html')            
 
 
-@login_required
+
 def project_findings_comment(request, project_id, finding_id):
     finding = get_object_or_404(Finding, id=finding_id)
 

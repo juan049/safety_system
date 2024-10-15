@@ -1,6 +1,5 @@
 {% extends "./layouts/base.html" %} {% load static %} {% block content %}
 <!-- Título Fijo -->
-
 <h2 class="text-center">HALLAZGOS DE SEGURIDAD EN EL PROYECTO: {{project}}</h2>
 
 <!-- Feed de Hallazgos -->
@@ -9,196 +8,182 @@
   {% for finding in findings %}
   <div class="card mb-4">
     <div class="card-body">
-      <div class="card-body">
-        <div class="text-start mb-3">
-          <form
-            action="{% url 'project_findings_change_status' finding.project.id finding.id %}"
-            method="POST"
-            style="display: inline"
-          >
-            {% csrf_token %}
-
-            <!-- prettier-ignore -->{% if finding.status %}<button
-              type="submit"
-              class="btn btn-danger"
-            >
-              Reabrir Hallazgo
-            </button>
-            <!-- prettier-ignore -->{% else %}<button
-              type="submit"
-              class="btn btn-success"
-            >
-              Cerrar Hallazgo
-            </button>
-            <!-- prettier-ignore -->{%endif %}
-          </form>
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center">
-            <h5 class="card-title fs-3 fw-bold mb-0">{{ finding.title }}</h5>
-            {% if finding.finding_classification.weighting == 6 %}
-            <span class="text-danger fw-bold text-uppercase ms-2">
-              🚨 HALLAZGO CRÍTICO 🚨
-            </span>
-            {% endif %}
-          </div>
-          {% if finding.status %}
-          <span class="badge bg-success rounded-pill">Hallazgo Cerrado</span>
+      <div class="text-start mb-3">
+        <form
+          action="{% url 'project_findings_change_status' finding.project.id finding.id %}"
+          method="POST"
+          style="display: inline"
+        >
+          {% csrf_token %} {% if finding.status %}
+          <button type="submit" class="btn btn-danger">Reabrir Hallazgo</button>
           {% else %}
-          <span class="badge bg-danger rounded-pill">Hallazgo No Cerrado</span>
+          <button type="submit" class="btn btn-success">Cerrar Hallazgo</button>
+          {% endif %}
+        </form>
+      </div>
+
+      <!-- Título y clasificación del hallazgo -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div class="d-flex align-items-center">
+          <h5 class="card-title fs-3 fw-bold mb-0">{{ finding.title }}</h5>
+          {% if finding.finding_classification.weighting == 6 %}
+          <span class="text-danger fw-bold text-uppercase ms-2">
+            🚨 HALLAZGO CRÍTICO 🚨
+          </span>
           {% endif %}
         </div>
+        {% if finding.status %}
+        <span class="badge bg-success rounded-pill">Hallazgo Cerrado</span>
+        {% else %}
+        <span class="badge bg-danger rounded-pill">Hallazgo No Cerrado</span>
+        {% endif %}
+      </div>
 
-        <div class="text-start mb-3">
-          <small class="text-muted fst-italic">
-            Publicado por:
-            <!-- prettier-ignore -->
-            <strong
-            >{{ finding.author.first_name }} {{ finding.author.last_name}}</strong>
-            <!-- prettier-ignore -->
-            el {{ finding.created_at|date:"Y-m-d" }}
-          </small>
-        </div>
-
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <img
-              src="{{ finding.before_image.url }}"
-              style="width: 500px; height: 300px"
-              class="img-fluid rounded"
-              alt="Foto de hallazgo"
-              loading="lazy"
-            />
-          </div>
-          <div class="col-md-6 mb-3">
-            {% if finding.after_image %}
-            <img
-              src="{{ finding.after_image.url }}"
-              style="width: 500px; height: 300px"
-              class="img-fluid rounded"
-              alt="Foto de hallazgo"
-              loading="lazy"
-            />
-            {% else %}
-            <div
-              class="d-flex flex-column align-items-center justify-content-center"
-              style="
-                height: 300px;
-                width: 500px;
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 0.5rem;
-              "
-            >
-              <h6 class="text-danger fw-bold" style="font-size: 1.5rem">
-                No se ha subido foto de la corrección
-              </h6>
-              <button
-                class="btn btn-primary mt-2 upload-form-button"
-                type="button"
-                onclick="document.getElementById('uploadAfterImage-{{ finding.id }}').click();"
-              >
-                Subir Foto
-              </button>
-              <form
-                id="upload-form-{{ finding.id }}"
-                method="post"
-                enctype="multipart/form-data"
-                action="{% url 'project_findings_upload_correction_image' finding.id %}"
-              >
-                {% csrf_token %}
-                <input
-                  type="file"
-                  id="uploadAfterImage-{{ finding.id }}"
-                  name="after_image"
-                  accept="image/*"
-                  style="display: none"
-                  onchange="document.getElementById('upload-form-{{ finding.id }}').submit();"
-                />
-              </form>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-        <p>
-          <strong>Clasificación del hallazgo: </strong>
-          <!-- prettier-ignore -->
-          {{finding.get_finding_classification.title }}<!-- prettier-ignore -->
-        </p>
-        <p>
-          <strong>Compañía responsable: </strong
-          ><!-- prettier-ignore -->{{ finding.get_contractor.name}}
-        </p>
-
-        <div class="description-section">
-          <h6><strong>Descripción del Hallazgo:</strong></h6>
-          <p>{{ finding.description }}</p>
-        </div>
-
-        <div class="row mb-3">
-          <h6 class="text-center fw-bold">Plano de Ubicación</h6>
-          <div class="col-12">
-            <div class="position-relative">
-              <img
-                src="{{ finding.project.pdf_image.url }}"
-                alt="Plano del Proyecto"
-                class="img-fluid"
-                style="max-width: 100%; height: auto"
-              />
-              <img
-                src="{% static 'images/pin.png' %}"
-                alt="Pin"
-                class="position-absolute"
-                style="width: 24px; height: 24px; top: {{ finding.pin_y }}px; left: {{ finding.pin_x }}px;"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="comments-section">
-          <!-- Sección de comentarios -->
-          <div class="comments-section">
-            <h6 class="fs-5 fw-bold">Comentarios</h6>
-            {% for comment in finding.comment_set.all %}
-            <div class="comment mb-2">
-              <strong
-                ><!-- prettier-ignore -->{{ comment.user_id.get_full_name }}<!-- prettier-ignore -->:</strong
-              >
-              <!-- prettier-ignore -->{{comment.text }}<!-- prettier-ignore -->
-              <span style="font-size: 0.8em; font-style: italic"
-              ><!-- prettier-ignore -->{{ comment.created_at|date:"Y-m-d" }}<!-- prettier-ignore --></span
-            >
-            </div>
-            {% empty %}
-            <div>No hay comentarios aún.</div>
-            {% endfor %}
-          </div>
-          {% if not finding.status %}
-          <form
-            action="{% url 'project_findings_comment' finding.project.id finding.id %}"
-            method="POST"
+      <!-- Autor y fecha -->
+      <div class="text-start mb-3">
+        <small class="text-muted fst-italic">
+          Publicado por:
+          <strong
+            ><!-- prettier-ignore -->{{ finding.author.first_name }}
+            <!-- prettier-ignore -->{{ finding.author.last_name}}</strong
           >
-            {% csrf_token %}
-            <div class="input-group mt-3">
+          el {{ finding.created_at|date:"Y-m-d" }}
+        </small>
+      </div>
+
+      <!-- Imágenes antes y después -->
+      <div class="row">
+        <div class="col-12 col-md-6 mb-3">
+          <img
+            src="{{ finding.before_image.url }}"
+            class="img-fluid rounded"
+            alt="Foto de hallazgo"
+            loading="lazy"
+          />
+        </div>
+        <div class="col-12 col-md-6 mb-3">
+          {% if finding.after_image %}
+          <img
+            src="{{ finding.after_image.url }}"
+            class="img-fluid rounded"
+            alt="Foto de hallazgo"
+            loading="lazy"
+          />
+          {% else %}
+          <div
+            class="d-flex flex-column align-items-center justify-content-center bg-light rounded"
+            style="height: 300px"
+          >
+            <h6 class="text-danger fw-bold text-center">
+              No se ha subido foto de la corrección
+            </h6>
+            <button
+              class="btn btn-primary mt-2"
+              type="button"
+              onclick="document.getElementById('uploadAfterImage-{{ finding.id }}').click();"
+            >
+              Subir Foto
+            </button>
+            <form
+              id="upload-form-{{ finding.id }}"
+              method="post"
+              enctype="multipart/form-data"
+              action="{% url 'project_findings_upload_correction_image' finding.id %}"
+            >
+              {% csrf_token %}
               <input
-                type="text"
-                name="text"
-                class="form-control"
-                placeholder="Añadir un comentario..."
-                aria-label="Comentario"
+                type="file"
+                id="uploadAfterImage-{{ finding.id }}"
+                name="after_image"
+                accept="image/*"
+                style="display: none"
+                onchange="document.getElementById('upload-form-{{ finding.id }}').submit();"
               />
-              <button class="btn btn-outline-secondary" type="submit">
-                Comentar
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
           {% endif %}
         </div>
       </div>
+
+      <!-- Clasificación y compañía responsable -->
+      <p>
+        <strong>Clasificación del hallazgo:</strong>
+        {{finding.get_finding_classification.title }}
+      </p>
+      <p>
+        <strong>Compañía responsable:</strong> {{ finding.get_contractor.name }}
+      </p>
+
+      <!-- Descripción del hallazgo -->
+      <div class="description-section">
+        <h6><strong>Descripción del Hallazgo:</strong></h6>
+        <p>{{ finding.description }}</p>
+      </div>
+
+      <!-- Plano de ubicación -->
+      <div class="row mb-3">
+        <h6 class="text-center fw-bold">Plano de Ubicación</h6>
+        <div class="col-12 d-flex justify-content-center">
+          <div
+            class="position-relative"
+            style="display: inline-block; max-width: 100%; height: auto"
+          >
+            <!-- Imagen del plano -->
+            <img
+              src="{{ finding.project.pdf_image.url }}"
+              alt="Plano del Proyecto"
+              class="img-fluid"
+              style="max-width: 100%; height: auto; display: block"
+              id="project-plan"
+            />
+
+            <!-- Pin de ubicación -->
+            <img
+              src="{% static 'images/pin.png' %}"
+              alt="Pin"
+              class="position-absolute"
+              style="width: 24px; height: 24px; top: {{ finding.pin_y }}px; left: {{ finding.pin_x }}px; max-width: 100%;"
+              id="location-pin"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Comentarios -->
+      <div class="comments-section">
+        <h6 class="fs-5 fw-bold">Comentarios</h6>
+        {% for comment in finding.comment_set.all %}
+        <div class="comment mb-2">
+          <strong>{{ comment.user_id.get_full_name }}:</strong>
+          <!-- prettier-ignore -->{{ comment.text}}
+          <span class="small text-muted fst-italic">
+            {{ comment.created_at|date:"Y-m-d" }}</span
+          >
+        </div>
+        {% empty %}
+        <div>No hay comentarios aún.</div>
+        {% endfor %} {% if not finding.status %}
+        <form
+          action="{% url 'project_findings_comment' finding.project.id finding.id %}"
+          method="POST"
+        >
+          {% csrf_token %}
+          <div class="input-group mt-3">
+            <input
+              type="text"
+              name="text"
+              class="form-control"
+              placeholder="Añadir un comentario..."
+            />
+            <button class="btn btn-outline-secondary" type="submit">
+              Comentar
+            </button>
+          </div>
+        </form>
+        {% endif %}
+      </div>
     </div>
   </div>
-  {%endfor%}
-  <!-- Continua con las demás tarjetas, siguiendo el mismo formato para la descripción y los comentarios -->
-
-  {% endblock %}
+  {% endfor %}
 </div>
+{% endblock %}

@@ -26,7 +26,9 @@ SECRET_KEY = 'django-insecure-@ypn!4&*tq5#9xz+7!5^ul&t%crdrl1=1&9%xqk49$3$xet04$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com']
+
 
 
 # Application definition
@@ -129,3 +131,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'  # O cualquier otra vista que desees redirigir
+

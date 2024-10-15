@@ -104,7 +104,12 @@
           id="image-canvas"
           width="500"
           height="400"
-          style="border: 1px solid #000"
+          style="
+            border: 1px solid #000;
+            width: 100%;
+            height: auto;
+            touch-action: none;
+          "
         ></canvas>
       </div>
       <div class="modal-footer">
@@ -151,26 +156,52 @@
       }
     });
 
-  // Iniciar el dibujo
-  canvas.addEventListener("mousedown", function (e) {
+  // Iniciar el dibujo (para mouse y touch)
+  function startDrawing(e) {
     drawing = true;
     ctx.beginPath();
-    ctx.moveTo(e.offsetX, e.offsetY);
-  });
+    const coords = getCoordinates(e);
+    ctx.moveTo(coords.x, coords.y);
+  }
 
-  // Dibujar en el canvas
-  canvas.addEventListener("mousemove", function (e) {
+  // Dibujar en el canvas (para mouse y touch)
+  function draw(e) {
     if (drawing) {
-      ctx.lineTo(e.offsetX, e.offsetY);
+      const coords = getCoordinates(e);
+      ctx.lineTo(coords.x, coords.y);
       ctx.stroke();
     }
-  });
+  }
 
-  // Terminar el dibujo
-  canvas.addEventListener("mouseup", function () {
+  // Terminar el dibujo (para mouse y touch)
+  function stopDrawing() {
     drawing = false;
     ctx.closePath();
-  });
+  }
+
+  // Obtener las coordenadas de evento (ajustado para mouse y touch)
+  function getCoordinates(e) {
+    let x, y;
+    if (e.touches) {
+      const rect = canvas.getBoundingClientRect();
+      x = e.touches[0].clientX - rect.left;
+      y = e.touches[0].clientY - rect.top;
+    } else {
+      x = e.offsetX;
+      y = e.offsetY;
+    }
+    return { x, y };
+  }
+
+  // Agregar eventos de mouse
+  canvas.addEventListener("mousedown", startDrawing);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", stopDrawing);
+
+  // Agregar eventos táctiles
+  canvas.addEventListener("touchstart", startDrawing);
+  canvas.addEventListener("touchmove", draw);
+  canvas.addEventListener("touchend", stopDrawing);
 
   // Guardar la imagen al cerrar el modal
   document
