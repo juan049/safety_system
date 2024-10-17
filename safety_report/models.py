@@ -92,7 +92,7 @@ class ProjectUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     
     def __str__(self) -> str:
-        return self.project.name + ' - ' + self.user.get_username()
+        return self.project.name + ' - ' + self.user.first_name + ' ' + self.user.last_name
 
 #Tabla de los contratistas registrados por proyecto
 class ProjectContractor(models.Model):

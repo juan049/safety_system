@@ -8,6 +8,7 @@
   {% for finding in findings %}
   <div class="card mb-4">
     <div class="card-body">
+      {% if user.is_staff %}
       <div class="text-start mb-3">
         <form
           action="{% url 'project_findings_change_status' finding.project.id finding.id %}"
@@ -21,6 +22,7 @@
           {% endif %}
         </form>
       </div>
+      {% endif %}
 
       <!-- Título y clasificación del hallazgo -->
       <div class="d-flex justify-content-between align-items-center flex-wrap">

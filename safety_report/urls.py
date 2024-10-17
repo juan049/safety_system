@@ -2,6 +2,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 
 from . import views
 
@@ -12,7 +13,7 @@ urlpatterns = [
     #Listado de proyectos
     path('projects/', login_required(views.projects), name="projects" ),
     #registrar proyecto
-    path('project_register', login_required(views.project_register), name='project_register'),
+    path('project_register', staff_member_required(views.project_register), name='project_register'),
     #Inicar auditoria de seguridad
     path('project_findings/<int:project_id>/audit', login_required(views.project_findings_audit), name='project_findings_audit'),
     #REgistrar finding
@@ -28,7 +29,7 @@ urlpatterns = [
     path('project_findings/<int:project_id>/comment/<int:finding_id>/', login_required(views.project_findings_comment), name='project_findings_comment'),
 
     #Cambiar estatus de  los findings
-    path('project_findings/<int:project_id>/change_status/<int:finding_id>/', login_required(views.project_findings_change_status), name='project_findings_change_status'),
+    path('project_findings/<int:project_id>/change_status/<int:finding_id>/', staff_member_required(views.project_findings_change_status), name='project_findings_change_status'),
 
     #Ver reporte
     path('project_findings_report', login_required(views.project_findings_report), name='project_findings_report'),

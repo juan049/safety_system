@@ -1,11 +1,13 @@
 {% extends "./layouts/base.html" %} {% block content %}
 <div class="container mt-4">
+  {% if user.is_staff %}
   <!-- Botón para crear un nuevo proyecto -->
   <div class="text-center mb-4">
     <a href="{% url 'project_register' %}" class="btn btn-success">
       Crear nuevo proyecto
     </a>
   </div>
+  {% endif %}
 
   <div class="row">
     {% for project in projects %}
@@ -14,12 +16,23 @@
         <div class="card-body">
           <h5 class="card-title">{{ project.name }}</h5>
         </div>
+
+        {% if project.finding_set.last.before_image.url %}
+        <img
+          src="{{ project.finding_set.last.before_image.url }}"
+          class="card-img-bottom"
+          alt="Imagen del Proyecto"
+          style="height: 200px; object-fit: cover"
+        />
+        {% else %}
         <img
           src="{{ project.pdf_image.url }}"
           class="card-img-bottom"
           alt="Imagen del Proyecto"
           style="height: 200px; object-fit: cover"
         />
+        {% endif %}
+
         <div class="card-body">
           <p class="card-text">{{ project.description|truncatewords:20 }}</p>
           <div class="text-center">

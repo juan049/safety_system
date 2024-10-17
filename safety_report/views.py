@@ -7,6 +7,8 @@ from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
 
 from django.http import JsonResponse
+from django.db.models import Max
+from django.http import HttpResponseForbidden
 
 
 from .forms import ProjectRegisterForm, FindingRegisterForm
@@ -17,7 +19,7 @@ import base64
 from datetime import datetime, timedelta
 
 
-from .models import Project, Finding, FindingClassification, Contractor, Image, ProjectContractor, Comment
+from .models import Project, Finding, FindingClassification, Contractor, Image, ProjectContractor, Comment, ProjectUser
 
 # Create your views here.
 
@@ -28,8 +30,14 @@ def home(request):
     })
 #Listado de proyectos
 def projects(request):
-    projects = Project.objects.all()
+    # Si el usuario es staff o superuser, puede ver todos los proyectos
+    if request.user.is_staff or request.user.is_superuser:
+        projects = Project.objects.all().annotate(last_finding_date=Max('finding__created_at'))
+    else:
+        # Si no es staff ni superuser, solo puede ver los proyectos en los que está registrado en ProjectUser
+        projects = Project.objects.filter(projectuser__user=request.user).annotate(last_finding_date=Max('finding__created_at'))
     return render(request, 'projects.html', {"projects": projects})
+
 #Crear proyecto
 def project_register(request):
     if request.method == 'POST':
@@ -99,6 +107,8 @@ def project_findings_register(request, project_id, finding_classification_id):
 
 
 def project_findings(request, project_id):
+    if not (request.user.is_staff or request.user.is_superuser or ProjectUser.objects.filter(user=request.user, project_id=project_id).exists()):
+        return HttpResponseForbidden("No tienes permiso para acceder a este proyecto.")
     project = get_object_or_404(Project, id=project_id)
     
     # Obtiene los hallazgos ordenados por fecha de creación de forma descendente
