@@ -31,8 +31,11 @@ urlpatterns = [
     #Cambiar estatus de  los findings
     path('project_findings/<int:project_id>/change_status/<int:finding_id>/', staff_member_required(views.project_findings_change_status), name='project_findings_change_status'),
 
-    #Ver reporte
-    path('project_findings_report', login_required(views.project_findings_report), name='project_findings_report'),
+    #Ver reporte general
+    path('project_findings_general_report', login_required(views.project_findings_general_report), name='project_findings_general_report'),
+    
+    #Ver historico
+    path('project_findings_historic_report', login_required(views.project_findings_historic_report), name='project_findings_historic_report'),
     
     #Descargar Reporte
      path('project_findings_report_download', login_required(views.project_findings_report_download), name='project_findings_report_download')

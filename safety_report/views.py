@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.template import Context
@@ -9,7 +10,11 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Max
 from django.http import HttpResponseForbidden
+from django.db.models import BooleanField, Case, When, Value
 
+from django.db.models import Count, Sum, F
+from django.db.models.functions import TruncWeek
+from django.utils import timezone
 
 from .forms import ProjectRegisterForm, FindingRegisterForm
 
@@ -112,7 +117,15 @@ def project_findings(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     
     # Obtiene los hallazgos ordenados por fecha de creación de forma descendente
-    findings = Finding.objects.filter(project_id=project_id).order_by('-created_at')
+
+    findings = Finding.objects.filter(project_id=project_id).annotate(
+        is_high_risk=Case(
+            When(status=False, finding_classification__weighting__gte=6, then=Value(True)),
+            default=Value(False),
+            output_field=BooleanField()
+        )
+    ).order_by('-is_high_risk', '-created_at')
+
     
     # Paginación: muestra 15 hallazgos por página
     paginator = Paginator(findings, 15)  # 15 hallazgos por página
@@ -175,7 +188,7 @@ def project_findings_change_status(request, project_id, finding_id):
     # Redirige de vuelta a la página del proyecto o a donde necesites
     return redirect('project_findings', project_id=project_id)
 
-def project_findings_report(request):
+def project_findings_general_report(request):
     # Obtener la fecha de hoy
     today = datetime.today()
 
@@ -256,8 +269,36 @@ def project_findings_report(request):
         "project_relevant_findings": project_relevant_findings
     }
     print (project_grades)
-    return render(request, 'project_findings_report.html', context)
+    return render(request, 'project_findings_general_report.html', context)
 
+def project_findings_historic_report(request):
+    # Obtener la fecha actual y calcular las últimas seis semanas
+    today = timezone.now()
+    six_weeks_ago = today - timedelta(weeks=6)
+
+    # Inicializar un diccionario para almacenar los resultados
+    result = defaultdict(lambda: defaultdict(float))
+
+    # Obtener todos los hallazgos creados en las últimas seis semanas
+    findings = Finding.objects.filter(created_at__gte=six_weeks_ago)
+
+    # Calcular la calificación por semana
+    for finding in findings:
+        week_number = finding.created_at.isocalendar()[1]  # Obtener el número de la semana
+        project_name = finding.project.name
+        weighting = finding.finding_classification.weighting
+
+        # Sumar el producto de findings y weighting
+        result[project_name][week_number] += weighting
+
+    # Calcular la calificación final
+    context = []
+    for project_name, weeks in result.items():
+        project_grade = {week: 100 - total_weighting for week, total_weighting in weeks.items()}
+        context.append([project_name, project_grade])
+        
+
+    return render(request, 'project_findings_historic_report.html', context)
 
 def render_to_pdf(template_src, context_dict={}):
     template = get_template(template_src)

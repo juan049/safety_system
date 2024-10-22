@@ -1,0 +1,100 @@
+{% extends "./layouts/base.html" %} {% block content %}
+<!-- Título de la página -->
+<div class="text-center mb-4">
+  <h1 class="text-uppercase">HISTORICO DE SEGURIDAD</h1>
+</div>
+<!-- Botones de navegación bien distribuidos -->
+{% include "layouts/project_findings_report_buttons.html" %}
+<!-- prettier-ignore -->
+{% for project in projects %}
+<!-- Contenedor principal -->
+<div class="container">
+  <div class="row">
+    <!-- Para cada proyecto -->
+    {% for project in projects %}
+    <div class="col-md-6 mb-4">
+      <!-- Div del proyecto, centrado -->
+      <div class="text-center">
+        <h2 class="fw-bold">{{ project.name }}</h2>
+        <!-- Nombre del proyecto en bold y centrado -->
+        <!-- Canvas para la gráfica -->
+        <div>
+          <canvas id="chart-{{ project.id }}" width="400" height="400"></canvas>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Incluir Chart.js desde CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // Datos estáticos de ejemplo (los mismos para todos los proyectos por ahora)
+  const chartData = {
+    labels: ['Agosto 2024', 'Septiembre 2024', 'Octubre 2024', 'Noviembre 2024', 'Diciembre 2024', 'Enero 2025'],
+    datasets: [{
+      label: 'Calificación (%)',
+      data: [85, 90, 92, 88, 93, 95], // Datos de ejemplo para todas las gráficas
+      backgroundColor: function(context) {
+        // Lógica para asignar color basado en el valor de calificación
+        const value = context.raw;
+        if (value < 90) {
+          return 'rgba(220, 53, 69, 0.8)';  // Rojo vivo
+        } else if (value >= 90 && value <= 94) {
+          return 'rgba(255, 193, 7, 0.8)';  // Amarillo vivo
+        } else {
+          return 'rgba(40, 167, 69, 0.8)';  // Verde vivo
+        }
+      },
+      borderColor: function(context) {
+        // Lógica para asignar el color del borde basado en el valor de calificación
+        const value = context.raw;
+        if (value < 90) {
+          return 'rgba(220, 53, 69, 1)';  // Rojo vivo
+        } else if (value >= 90 && value <= 94) {
+          return 'rgba(255, 193, 7, 1)';  // Amarillo vivo
+        } else {
+          return 'rgba(40, 167, 69, 1)';  // Verde vivo
+        }
+      },
+      borderWidth: 1
+    }]
+  };
+
+  // Opciones para todas las gráficas
+  const chartOptions = {
+    responsive: true,
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100
+      }
+    }
+  };
+
+  // Crear una gráfica para cada proyecto
+  document.addEventListener('DOMContentLoaded', function() {
+    {% for project in projects %}
+    const ctx{{ project.id }} = document.getElementById('chart-{{ project.id }}').getContext('2d');
+    new Chart(ctx{{ project.id }}, {
+      type: 'bar', // Tipo de gráfico de barras
+      data: chartData,
+      options: chartOptions
+    });
+    {% endfor %}
+  });
+</script>
+
+<!-- Estilos CSS -->
+<style>
+  .container {
+    margin-top: 30px;
+  }
+  .text-center h2 {
+    margin-bottom: 20px;
+  }
+</style>
+
+{% endfor %} {% endblock %}
