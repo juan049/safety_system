@@ -37,6 +37,9 @@ urlpatterns = [
     #Ver historico
     path('project_findings_historic_report', login_required(views.project_findings_historic_report), name='project_findings_historic_report'),
     
+    #Reporte por contratista
+    path('project_findings_contractor_report', login_required(views.project_findings_contractor_report), name='project_findings_contractor_report'),
+    
     #Descargar Reporte
      path('project_findings_report_download', login_required(views.project_findings_report_download), name='project_findings_report_download')
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

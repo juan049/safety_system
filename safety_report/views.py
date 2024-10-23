@@ -21,7 +21,7 @@ from .forms import ProjectRegisterForm, FindingRegisterForm
 from xhtml2pdf import pisa
 import base64
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 
 from .models import Project, Finding, FindingClassification, Contractor, Image, ProjectContractor, Comment, ProjectUser
@@ -290,14 +290,14 @@ def get_week_range(year, week):
 def project_findings_historic_report(request):
     # Obtener la fecha actual y calcular las últimas seis semanas
     today = timezone.now()
-    six_weeks_ago = today - timedelta(weeks=6)
+    twenty_six_weeks_ago = today - timedelta(weeks=26)
 
     # Inicializar un diccionario para almacenar los resultados
     result = defaultdict(lambda: defaultdict(float))
     all_weeks = set()
 
     # Obtener todos los hallazgos creados en las últimas seis semanas
-    findings = Finding.objects.filter(created_at__gte=six_weeks_ago)
+    findings = Finding.objects.filter(created_at__gte=twenty_six_weeks_ago)
 
     # Calcular la calificación por semana
     for finding in findings:
@@ -319,6 +319,8 @@ def project_findings_historic_report(request):
         # Rellenar todas las semanas con su calificación correspondiente (100 si no hubo hallazgos)
         for (year, week) in all_weeks:
             total_weighting = weeks.get((year, week), 0)  # Si no hubo hallazgos, el total_weighting es 0
+            if total_weighting > 100:
+                total_weighting = 100
             start_date, end_date = get_week_range(year, week)
             week_range = f"{start_date} - {end_date}"
             project_grade[week_range] = 100 - total_weighting
@@ -337,6 +339,87 @@ def project_findings_historic_report(request):
     # Renderizar la plantilla con el contexto
     return render(request, 'project_findings_historic_report.html', context)
 
+def project_findings_contractor_report(request):
+    # Obtener la fecha de inicio y fin de la semana pasada
+    today = timezone.now().date()
+    start_of_last_week = today - timedelta(days=today.weekday() + 7)  # Lunes de la semana pasada
+    end_of_last_week = start_of_last_week + timedelta(days=6)  # Domingo de la semana pasada
+
+    contractors = Contractor.objects.all()
+    contractor_findings = {}
+
+    for contractor in contractors:
+        # Obtener los proyectos asociados a este contratista
+        projects = ProjectContractor.objects.filter(contractor=contractor).values_list('project', flat=True)
+
+        findings = Finding.objects.filter(
+            project__in=projects,
+            created_at__range=[start_of_last_week, end_of_last_week]
+        ).select_related('finding_classification')
+
+        # Organizar los hallazgos en la estructura requerida
+        contractor_findings[contractor.name] = {}
+        for finding in findings:
+            project_name = finding.project.name
+            category = "criticos" if finding.finding_classification.weighting > 3 else "advertencia"
+
+            if project_name not in contractor_findings[contractor.name]:
+                contractor_findings[contractor.name][project_name] = {
+                    "advertencia": [],
+                    "criticos": []
+                }
+
+            contractor_findings[contractor.name][project_name][category].append([
+                finding.created_at,
+                project_name,
+                finding.finding_classification.title,
+                finding.description,
+            ])
+
+    context = {"contractors": contractor_findings}
+    return render(request, 'project_findings_contractor_report.html', context)
+
+    contractors = Contractor.objects.all()
+    contractor_findings = {}
+
+    # Definir la fecha de inicio y fin para la semana pasada
+    today = date.today()  # Asegúrate de que `date` esté importado correctamente
+    start_date = today - timedelta(days=today.weekday() + 7)  # Lunes de la semana pasada
+    end_date = start_date + timedelta(days=6)  # Domingo de la semana pasada
+
+    for contractor in contractors:
+        # Obtener los proyectos asociados al contratista
+        projects = contractor.project_set.all()
+        
+        # Inicializar la estructura para almacenar hallazgos
+        contractor_findings[contractor.name] = {}
+        
+        for project in projects:
+            # Obtener los hallazgos en la semana pasada para cada proyecto
+            findings = Finding.objects.filter(project=project, created_at__range=[start_date, end_date])
+
+            # Inicializar la estructura para almacenar hallazgos por proyecto
+            contractor_findings[contractor.name][project.name] = {"advertencia": [], "criticos": []}
+            
+            for finding in findings:
+                # Clasificar el hallazgo según su ponderación
+                if finding.finding_classification.weighting > 3:
+                    category = "criticos"
+                elif finding.finding_classification.weighting > 2:
+                    category = "advertencia"
+
+                # Añadir el hallazgo a la categoría correspondiente
+                if category == "criticos":
+                    contractor_findings[contractor.name][project.name]["criticos"].append(
+                        [finding.created_at, project.name, finding.finding_classification.name, finding.description]
+                    )
+                elif category == "advertencia":
+                    contractor_findings[contractor.name][project.name]["advertencia"].append(
+                        [finding.created_at, project.name, finding.finding_classification.name, finding.description]
+                    )
+
+    context = {"contractor_findings": contractor_findings}
+    return render(request, 'project_findings_contractor_report.html', context)
 def render_to_pdf(template_src, context_dict={}):
     template = get_template(template_src)
     html = template.render(context_dict)

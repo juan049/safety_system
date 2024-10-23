@@ -1,0 +1,101 @@
+{% extends "./layouts/base.html" %} {% block content %}
+<!-- Título de la página -->
+<div class="text-center mb-4">
+  <h1 class="text-uppercase">REPORTE DE CONTRATISTAS</h1>
+</div>
+<!-- Botones de navegación bien distribuidos -->
+{% include "layouts/project_findings_report_buttons.html" %}
+<!-- prettier-ignore -->
+{% for contractor_name, projects in contractors.items %}
+<div class="container mt-5">
+  <h2>Contratista: <strong>{{ contractor_name }}</strong></h2>
+  <div class="row mt-4">
+    <!-- Hallazgos Críticos -->
+    <div class="col-md-6">
+      <h4 class="text-center table-header-danger">Hallazgos Críticos</h4>
+      <table class="table table-danger">
+        <thead class="bg-dark text-white">
+          <tr class="text-center">
+            <th>Fecha</th>
+            <th>Proyecto</th>
+            <th>Hallazgo</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project_name, categories in projects.items %}
+            {% for finding in categories.criticos %}
+            <tr class="text-center">
+              <td>{{ finding.0 }}</td>
+              <td>{{ project_name }}</td>
+              <td>{{ finding.2 }}</td>
+              <td style="max-width: 200px; overflow-wrap: break-word;">{{ finding.3 }}</td>
+            </tr>
+            {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Hallazgos de Alerta -->
+    <div class="col-md-6">
+      <h4 class="text-center table-header-warning">Hallazgos de Alerta</h4>
+      <table class="table table-warning">
+        <thead class="bg-dark text-white">
+          <tr class="text-center">
+            <th>Fecha</th>
+            <th>Proyecto</th>
+            <th>Hallazgo</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project_name, categories in projects.items %}
+            {% for finding in categories.advertencia %}
+            <tr class="text-center">
+              <td>{{ finding.0 }}</td>
+              <td>{{ project_name }}</td>
+              <td>{{ finding.2 }}</td>
+              <td style="max-width: 200px; overflow-wrap: break-word;">{{ finding.3 }}</td>
+            </tr>
+            {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+</div>
+<style>
+  /* Estilos personalizados */
+  .table-danger {
+    background-color: #f8d7da !important; /* Rojo claro */
+  }
+
+  .table-warning {
+    background-color: #fff3cd !important; /* Amarillo claro */
+  }
+
+  .bg-dark {
+    background-color: #343a40 !important; /* Fondo oscuro para los encabezados */
+  }
+
+  .text-white {
+    color: #fff !important; /* Texto blanco para contraste */
+  }
+
+  .text-center {
+    text-align: center; /* Centrar todo el contenido */
+  }
+  .description {
+    max-width: 200px; /* Ajusta el ancho máximo según sea necesario */
+    word-wrap: break-word; /* Permite que las palabras largas se dividan */
+    overflow: hidden; /* Oculta el desbordamiento */
+    display: -webkit-box; /* Para el efecto de múltiples líneas */
+    -webkit-line-clamp: 3; /* Número máximo de líneas a mostrar */
+    -webkit-box-orient: vertical; /* Orientación vertical para el recorte */
+  }
+</style>
