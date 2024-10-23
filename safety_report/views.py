@@ -271,6 +271,22 @@ def project_findings_general_report(request):
     print (project_grades)
     return render(request, 'project_findings_general_report.html', context)
 
+# Función para obtener el rango de fechas de una semana
+def get_week_range(year, week):
+    # Crear la fecha del primer día del año, ajustada a la zona horaria
+    first_day_of_year = timezone.make_aware(timezone.datetime(year, 1, 1))
+    first_day_of_week = first_day_of_year + timedelta(weeks=week - 1)
+    
+    # Ajustar para que el primer día de la semana sea el lunes
+    while first_day_of_week.weekday() != 0:  # Lunes es 0
+        first_day_of_week -= timedelta(days=1)
+    
+    # Obtener el último día de la semana (domingo)
+    last_day_of_week = first_day_of_week + timedelta(days=6)
+    
+    # Convertir las fechas a formato 'yyyy-mm-dd'
+    return first_day_of_week.strftime('%Y-%m-%d'), last_day_of_week.strftime('%Y-%m-%d')
+
 def project_findings_historic_report(request):
     # Obtener la fecha actual y calcular las últimas seis semanas
     today = timezone.now()
@@ -278,6 +294,7 @@ def project_findings_historic_report(request):
 
     # Inicializar un diccionario para almacenar los resultados
     result = defaultdict(lambda: defaultdict(float))
+    all_weeks = set()
 
     # Obtener todos los hallazgos creados en las últimas seis semanas
     findings = Finding.objects.filter(created_at__gte=six_weeks_ago)
@@ -285,19 +302,39 @@ def project_findings_historic_report(request):
     # Calcular la calificación por semana
     for finding in findings:
         week_number = finding.created_at.isocalendar()[1]  # Obtener el número de la semana
+        year_number = finding.created_at.isocalendar()[0]  # Obtener el año correspondiente
         project_name = finding.project.name
+        project_id = finding.project.id
         weighting = finding.finding_classification.weighting
 
-        # Sumar el producto de findings y weighting
-        result[project_name][week_number] += weighting
+        # Sumar la semana a todas las semanas y registrar el hallazgo ponderado
+        all_weeks.add((year_number, week_number))
+        result[(project_id, project_name)][(year_number, week_number)] += weighting
 
-    # Calcular la calificación final
-    context = []
-    for project_name, weeks in result.items():
-        project_grade = {week: 100 - total_weighting for week, total_weighting in weeks.items()}
-        context.append([project_name, project_grade])
-        
+    # Calcular la calificación final, asegurando que todas las semanas existan
+    projects_grades = []
+    for (project_id, project_name), weeks in result.items():
+        project_grade = {}
 
+        # Rellenar todas las semanas con su calificación correspondiente (100 si no hubo hallazgos)
+        for (year, week) in all_weeks:
+            total_weighting = weeks.get((year, week), 0)  # Si no hubo hallazgos, el total_weighting es 0
+            start_date, end_date = get_week_range(year, week)
+            week_range = f"{start_date} - {end_date}"
+            project_grade[week_range] = 100 - total_weighting
+
+        projects_grades.append({
+            'id': project_id,
+            'project_name': project_name,
+            'grades': project_grade
+        })
+
+    # Convertir el contexto en un diccionario para la plantilla
+    context = {
+        'projects_grades': projects_grades
+    }
+
+    # Renderizar la plantilla con el contexto
     return render(request, 'project_findings_historic_report.html', context)
 
 def render_to_pdf(template_src, context_dict={}):
