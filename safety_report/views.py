@@ -340,44 +340,70 @@ def project_findings_historic_report(request):
     return render(request, 'project_findings_historic_report.html', context)
 
 def project_findings_contractor_report(request):
-    # Obtener la fecha de inicio y fin de la semana pasada
-    today = timezone.now().date()
-    start_of_last_week = today - timedelta(days=today.weekday() + 7)  # Lunes de la semana pasada
-    end_of_last_week = start_of_last_week + timedelta(days=6)  # Domingo de la semana pasada
+    contractors_project_data = {}
 
+    # Consultar contratistas
     contractors = Contractor.objects.all()
-    contractor_findings = {}
 
     for contractor in contractors:
-        # Obtener los proyectos asociados a este contratista
-        projects = ProjectContractor.objects.filter(contractor=contractor).values_list('project', flat=True)
+        contractor_data = {
+            "name": contractor.name,
+            "projects": {}
+        }
+        
+        # Consultar los proyectos del contratista
+        projects = Project.objects.filter(projectcontractor__contractor=contractor)
 
-        findings = Finding.objects.filter(
-            project__in=projects,
-            created_at__range=[start_of_last_week, end_of_last_week]
-        ).select_related('finding_classification')
+        for project in projects:
+            # Obtener hallazgos críticos y de advertencia por proyecto
+            critical_findings = Finding.objects.filter(
+                project=project,
+                contractor=contractor,
+                finding_classification__weighting=6
+            ).values("created_at", "project__name", "finding_classification__title", "description")
 
-        # Organizar los hallazgos en la estructura requerida
-        contractor_findings[contractor.name] = {}
-        for finding in findings:
-            project_name = finding.project.name
-            category = "criticos" if finding.finding_classification.weighting > 3 else "advertencia"
+            warning_findings = Finding.objects.filter(
+                project=project,
+                contractor=contractor,
+                finding_classification__weighting=3
+            ).values("created_at", "project__name", "finding_classification__title", "description")
 
-            if project_name not in contractor_findings[contractor.name]:
-                contractor_findings[contractor.name][project_name] = {
-                    "advertencia": [],
-                    "criticos": []
+            # Formatear los datos
+            project_data = {
+                "name": project.name,
+                "critical": {
+                    "total": critical_findings.count(),
+                    "data": [
+                        {
+                            "date": finding["created_at"].strftime('%Y-%m-%d'),
+                            "project_name": finding["project__name"],
+                            "classification_title": finding["finding_classification__title"],
+                            "description": finding["description"]
+                        }
+                        for finding in critical_findings
+                    ]
+                },
+                "warning": {
+                    "total": warning_findings.count(),
+                    "data": [
+                        {
+                            "date": finding["created_at"].strftime('%Y-%m-%d'),
+                            "project_name": finding["project__name"],
+                            "classification_title": finding["finding_classification__title"],
+                            "description": finding["description"]
+                        }
+                        for finding in warning_findings
+                    ]
                 }
+            }
+            
+            contractor_data["projects"][project.id] = project_data
 
-            contractor_findings[contractor.name][project_name][category].append([
-                finding.created_at,
-                project_name,
-                finding.finding_classification.title,
-                finding.description,
-            ])
+        contractors_project_data[contractor.id] = contractor_data
 
-    context = {"contractors": contractor_findings}
+    context = {"contractors_project_data": contractors_project_data}
     return render(request, 'project_findings_contractor_report.html', context)
+
 
     contractors = Contractor.objects.all()
     contractor_findings = {}
